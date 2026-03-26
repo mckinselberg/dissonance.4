@@ -1,9 +1,11 @@
 extends Node3D
 
 @onready var drone: Node3D = $Drone
+@onready var drone_route: Node3D = $DroneRoute
 @onready var mist_a: GPUParticles3D = $MistParticles_A
 @onready var mist_b: GPUParticles3D = $MistParticles_B
 @onready var street_lights: Node3D = $StreetLights
+@onready var player: Node3D = $Player
 
 
 func _ready() -> void:
@@ -11,6 +13,10 @@ func _ready() -> void:
 
 	if drone.has_method("randomize_motion"):
 		drone.call("randomize_motion", randf_range(0.0, TAU))
+	if drone.has_method("set_route"):
+		drone.call("set_route", drone_route)
+	if drone.has_method("set_player"):
+		drone.call("set_player", player)
 
 	for mist in [mist_a, mist_b]:
 		if mist.has_method("set_phase_offset"):

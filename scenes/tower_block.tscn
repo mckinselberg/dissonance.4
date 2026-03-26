@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Material" path="res://materials/tower_dark.tres" id="1_tower_mat"]
+[ext_resource type="Material" path="res://materials/window_warm.tres" id="2_window_mat"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_tower"]
 size = Vector3(8, 24, 8)
@@ -9,11 +10,33 @@ material = ExtResource("1_tower_mat")
 [sub_resource type="BoxShape3D" id="BoxShape3D_tower"]
 size = Vector3(8, 24, 8)
 
+[sub_resource type="BoxMesh" id="BoxMesh_window_strip"]
+size = Vector3(0.45, 1.7, 0.06)
+material = ExtResource("2_window_mat")
+
 [node name="TowerBlock" type="Node3D"]
 
 [node name="Block" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_tower")
 position = Vector3(0, 12, 0)
+
+[node name="Window_A" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_window_strip")
+position = Vector3(3.98, 6.8, -1.4)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="Window_B" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_window_strip")
+position = Vector3(3.98, 12.4, 1.1)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="Window_C" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_window_strip")
+position = Vector3(-1.7, 17.0, 3.98)
+
+[node name="Window_D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_window_strip")
+position = Vector3(1.1, 20.2, 3.98)
 
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
 

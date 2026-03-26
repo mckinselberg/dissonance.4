@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=48 format=3]
 
 [ext_resource type="Script" path="res://scripts/main_scene_setup.gd" id="1_main_script"]
 [ext_resource type="Script" path="res://scripts/mist_controller.gd" id="2_mist_script"]
@@ -10,6 +10,11 @@
 [ext_resource type="PackedScene" path="res://scenes/tower_block.tscn" id="8_tower_scene"]
 [ext_resource type="PackedScene" path="res://scenes/streetlight.tscn" id="9_streetlight_scene"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="10_player_script"]
+[ext_resource type="Material" path="res://materials/concrete_dark.tres" id="11_concrete_mat"]
+[ext_resource type="Material" path="res://materials/metal_guard.tres" id="12_metal_mat"]
+[ext_resource type="Script" path="res://scripts/dev_hud.gd" id="13_dev_hud_script"]
+[ext_resource type="Script" path="res://scripts/drone_route_point.gd" id="14_route_point_script"]
+[ext_resource type="Material" path="res://materials/window_warm.tres" id="15_window_mat"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
 size = Vector3(80, 0.2, 180)
@@ -19,11 +24,98 @@ material = ExtResource("4_ground_mat")
 size = Vector3(18, 40, 18)
 material = ExtResource("5_tower_mat")
 
+[sub_resource type="BoxMesh" id="BoxMesh_sidewalk"]
+size = Vector3(10, 0.24, 180)
+material = ExtResource("11_concrete_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_curb"]
+size = Vector3(0.45, 0.28, 180)
+material = ExtResource("11_concrete_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_perimeter_wall"]
+size = Vector3(2.2, 8, 180)
+material = ExtResource("11_concrete_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_rear_wall"]
+size = Vector3(84, 8, 2.4)
+material = ExtResource("11_concrete_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_barrier_long"]
+size = Vector3(6, 1.1, 1.2)
+material = ExtResource("11_concrete_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_guardrail"]
+size = Vector3(12, 0.2, 0.18)
+material = ExtResource("12_metal_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_guard_post"]
+size = Vector3(0.12, 1.1, 0.12)
+material = ExtResource("12_metal_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_utility_box"]
+size = Vector3(1.4, 1.8, 1.0)
+material = ExtResource("11_concrete_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_service_shed"]
+size = Vector3(5.5, 3.2, 3.8)
+material = ExtResource("11_concrete_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_kiosk"]
+size = Vector3(3.0, 2.8, 2.4)
+material = ExtResource("11_concrete_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_light_pylon"]
+size = Vector3(1.6, 16.0, 1.6)
+material = ExtResource("11_concrete_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_gate_block"]
+size = Vector3(16.0, 10.0, 5.0)
+material = ExtResource("11_concrete_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_sign_panel"]
+size = Vector3(4.2, 1.2, 0.18)
+material = ExtResource("12_metal_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_window_strip"]
+size = Vector3(0.55, 1.7, 0.08)
+material = ExtResource("15_window_mat")
+
+[sub_resource type="BoxMesh" id="BoxMesh_window_panel"]
+size = Vector3(0.75, 2.2, 0.08)
+material = ExtResource("15_window_mat")
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(80, 0.2, 180)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_main_tower"]
 size = Vector3(18, 40, 18)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_sidewalk"]
+size = Vector3(10, 0.24, 180)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
+size = Vector3(2.2, 8, 180)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_rear_wall"]
+size = Vector3(84, 8, 2.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_barrier_long"]
+size = Vector3(6, 1.1, 1.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_utility_box"]
+size = Vector3(1.4, 1.8, 1.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_service_shed"]
+size = Vector3(5.5, 3.2, 3.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kiosk"]
+size = Vector3(3.0, 2.8, 2.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_light_pylon"]
+size = Vector3(1.6, 16.0, 1.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gate_block"]
+size = Vector3(16.0, 10.0, 5.0)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.35
@@ -31,19 +123,19 @@ height = 1.1
 
 [sub_resource type="FogMaterial" id="FogMaterial_ground_a"]
 albedo = Color(0.32, 0.31, 0.29, 1)
-density = 0.38
+density = 0.28
 edge_fade = 0.2
 height_falloff = 0.0
 
 [sub_resource type="FogMaterial" id="FogMaterial_ground_b"]
 albedo = Color(0.28, 0.29, 0.3, 1)
-density = 0.28
+density = 0.2
 edge_fade = 0.24
 height_falloff = 0.0
 
 [sub_resource type="FogMaterial" id="FogMaterial_mid_a"]
 albedo = Color(0.26, 0.27, 0.28, 1)
-density = 0.16
+density = 0.1
 edge_fade = 0.4
 height_falloff = 0.1
 
@@ -90,10 +182,10 @@ environment = ExtResource("3_env")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-42, -128, 0)
 light_color = Color(0.5, 0.55, 0.62, 1)
-light_energy = 0.25
-light_angular_distance = 2.0
+light_energy = 0.3
+light_angular_distance = 0.9
 shadow_enabled = true
-light_volumetric_fog_energy = 0.4
+light_volumetric_fog_energy = 0.28
 
 [node name="Player" type="CharacterBody3D" parent="."]
 script = ExtResource("10_player_script")
@@ -126,15 +218,117 @@ position = Vector3(0, -0.1, -40)
 position = Vector3(0, -0.1, -40)
 shape = SubResource("BoxShape3D_ground")
 
+[node name="Sidewalk_Left" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_sidewalk")
+position = Vector3(-15, -0.08, -40)
+
+[node name="Sidewalk_Right" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_sidewalk")
+position = Vector3(15, -0.08, -40)
+
+[node name="Curb_Left" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_curb")
+position = Vector3(-10.2, 0.02, -40)
+
+[node name="Curb_Right" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_curb")
+position = Vector3(10.2, 0.02, -40)
+
+[node name="SidewalkBody_Left" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SidewalkBody_Left"]
+position = Vector3(-15, -0.08, -40)
+shape = SubResource("BoxShape3D_sidewalk")
+
+[node name="SidewalkBody_Right" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SidewalkBody_Right"]
+position = Vector3(15, -0.08, -40)
+shape = SubResource("BoxShape3D_sidewalk")
+
 [node name="Tower_Main" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_main_tower")
 position = Vector3(-14, 20, -20)
+
+[node name="Tower_Main_Window_01" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_window_panel")
+position = Vector3(-4.95, 8.0, -14.0)
+
+[node name="Tower_Main_Window_02" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_window_panel")
+position = Vector3(-4.95, 14.5, -10.5)
+
+[node name="Tower_Main_Window_03" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_window_panel")
+position = Vector3(-10.5, 23.0, -10.95)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="Tower_Main_Window_04" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_window_panel")
+position = Vector3(-17.05, 29.0, -18.2)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="Tower_Main_Window_05" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_window_panel")
+position = Vector3(-4.95, 31.5, -21.5)
 
 [node name="Tower_Main_Body" type="StaticBody3D" parent="."]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Tower_Main_Body"]
 position = Vector3(-14, 20, -20)
 shape = SubResource("BoxShape3D_main_tower")
+
+[node name="LevelBounds" type="Node3D" parent="."]
+
+[node name="PerimeterWall_Left" type="MeshInstance3D" parent="LevelBounds"]
+mesh = SubResource("BoxMesh_perimeter_wall")
+position = Vector3(-31.5, 4.0, -40)
+
+[node name="PerimeterWall_Right" type="MeshInstance3D" parent="LevelBounds"]
+mesh = SubResource("BoxMesh_perimeter_wall")
+position = Vector3(31.5, 4.0, -40)
+
+[node name="PerimeterWall_Left_Fore" type="MeshInstance3D" parent="LevelBounds"]
+mesh = SubResource("BoxMesh_perimeter_wall")
+position = Vector3(-31.5, 4.0, 42.0)
+
+[node name="PerimeterWall_Right_Fore" type="MeshInstance3D" parent="LevelBounds"]
+mesh = SubResource("BoxMesh_perimeter_wall")
+position = Vector3(31.5, 4.0, 42.0)
+
+[node name="RearWall" type="MeshInstance3D" parent="LevelBounds"]
+mesh = SubResource("BoxMesh_rear_wall")
+position = Vector3(0, 4.0, -128.5)
+
+[node name="PerimeterWall_Left_Body" type="StaticBody3D" parent="LevelBounds"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LevelBounds/PerimeterWall_Left_Body"]
+position = Vector3(-31.5, 4.0, -40)
+shape = SubResource("BoxShape3D_wall")
+
+[node name="PerimeterWall_Right_Body" type="StaticBody3D" parent="LevelBounds"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LevelBounds/PerimeterWall_Right_Body"]
+position = Vector3(31.5, 4.0, -40)
+shape = SubResource("BoxShape3D_wall")
+
+[node name="PerimeterWall_Left_Fore_Body" type="StaticBody3D" parent="LevelBounds"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LevelBounds/PerimeterWall_Left_Fore_Body"]
+position = Vector3(-31.5, 4.0, 42.0)
+shape = SubResource("BoxShape3D_wall")
+
+[node name="PerimeterWall_Right_Fore_Body" type="StaticBody3D" parent="LevelBounds"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LevelBounds/PerimeterWall_Right_Fore_Body"]
+position = Vector3(31.5, 4.0, 42.0)
+shape = SubResource("BoxShape3D_wall")
+
+[node name="RearWall_Body" type="StaticBody3D" parent="LevelBounds"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LevelBounds/RearWall_Body"]
+position = Vector3(0, 4.0, -128.5)
+shape = SubResource("BoxShape3D_rear_wall")
 
 [node name="Skyline_Group" type="Node3D" parent="."]
 
@@ -165,6 +359,31 @@ scale = Vector3(1.6, 0.7, 1.6)
 [node name="Drone" parent="." instance=ExtResource("7_drone_scene")]
 position = Vector3(1.5, 8.6, -30)
 
+[node name="DroneRoute" type="Node3D" parent="."]
+
+[node name="RoutePoint_01" type="Marker3D" parent="DroneRoute"]
+script = ExtResource("14_route_point_script")
+position = Vector3(2.0, 9.0, -18.0)
+wait_time = 0.75
+
+[node name="RoutePoint_02" type="Marker3D" parent="DroneRoute"]
+script = ExtResource("14_route_point_script")
+position = Vector3(-6.5, 11.5, -42.0)
+
+[node name="RoutePoint_03" type="Marker3D" parent="DroneRoute"]
+script = ExtResource("14_route_point_script")
+position = Vector3(9.5, 10.0, -68.0)
+wait_time = 1.2
+
+[node name="RoutePoint_04" type="Marker3D" parent="DroneRoute"]
+script = ExtResource("14_route_point_script")
+position = Vector3(1.0, 12.8, -100.0)
+wait_time = 0.9
+
+[node name="RoutePoint_05" type="Marker3D" parent="DroneRoute"]
+script = ExtResource("14_route_point_script")
+position = Vector3(-11.0, 9.5, -72.0)
+
 [node name="StreetLights" type="Node3D" parent="."]
 
 [node name="StreetLight_A" parent="StreetLights" instance=ExtResource("9_streetlight_scene")]
@@ -178,6 +397,172 @@ position = Vector3(7.5, 0, -39)
 
 [node name="StreetLight_D" parent="StreetLights" instance=ExtResource("9_streetlight_scene")]
 position = Vector3(-7.0, 0, -10)
+
+[node name="StreetLight_E" parent="StreetLights" instance=ExtResource("9_streetlight_scene")]
+position = Vector3(-7.0, 0, -54)
+
+[node name="StreetLight_F" parent="StreetLights" instance=ExtResource("9_streetlight_scene")]
+position = Vector3(8.0, 0, -76)
+
+[node name="Details" type="Node3D" parent="."]
+
+[node name="Barrier_A" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_barrier_long")
+position = Vector3(-3.5, 0.55, -84)
+rotation_degrees = Vector3(0, 8, 0)
+
+[node name="Barrier_A_Body" type="StaticBody3D" parent="Details"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Details/Barrier_A_Body"]
+position = Vector3(-3.5, 0.55, -84)
+rotation_degrees = Vector3(0, 8, 0)
+shape = SubResource("BoxShape3D_barrier_long")
+
+[node name="Barrier_B" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_barrier_long")
+position = Vector3(4.8, 0.55, -96)
+rotation_degrees = Vector3(0, -12, 0)
+
+[node name="Barrier_B_Body" type="StaticBody3D" parent="Details"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Details/Barrier_B_Body"]
+position = Vector3(4.8, 0.55, -96)
+rotation_degrees = Vector3(0, -12, 0)
+shape = SubResource("BoxShape3D_barrier_long")
+
+[node name="UtilityBox_A" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_utility_box")
+position = Vector3(13.6, 0.9, -28)
+
+[node name="UtilityBox_A_Body" type="StaticBody3D" parent="Details"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Details/UtilityBox_A_Body"]
+position = Vector3(13.6, 0.9, -28)
+shape = SubResource("BoxShape3D_utility_box")
+
+[node name="UtilityBox_B" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_utility_box")
+position = Vector3(-13.2, 0.9, -60)
+
+[node name="UtilityBox_B_Body" type="StaticBody3D" parent="Details"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Details/UtilityBox_B_Body"]
+position = Vector3(-13.2, 0.9, -60)
+shape = SubResource("BoxShape3D_utility_box")
+
+[node name="ServiceShed" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_service_shed")
+position = Vector3(18.0, 1.6, -74)
+
+[node name="ServiceShed_Body" type="StaticBody3D" parent="Details"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Details/ServiceShed_Body"]
+position = Vector3(18.0, 1.6, -74)
+shape = SubResource("BoxShape3D_service_shed")
+
+[node name="CheckpointKiosk_Left" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_kiosk")
+position = Vector3(-17.5, 1.4, 6.0)
+
+[node name="CheckpointKiosk_Left_Body" type="StaticBody3D" parent="Details"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Details/CheckpointKiosk_Left_Body"]
+position = Vector3(-17.5, 1.4, 6.0)
+shape = SubResource("BoxShape3D_kiosk")
+
+[node name="CheckpointKiosk_Right" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_kiosk")
+position = Vector3(17.5, 1.4, 6.0)
+
+[node name="CheckpointKiosk_Right_Body" type="StaticBody3D" parent="Details"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Details/CheckpointKiosk_Right_Body"]
+position = Vector3(17.5, 1.4, 6.0)
+shape = SubResource("BoxShape3D_kiosk")
+
+[node name="LightPylon_Left" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_light_pylon")
+position = Vector3(-24.5, 8.0, -8.0)
+
+[node name="LightPylon_Left_Body" type="StaticBody3D" parent="Details"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Details/LightPylon_Left_Body"]
+position = Vector3(-24.5, 8.0, -8.0)
+shape = SubResource("BoxShape3D_light_pylon")
+
+[node name="LightPylon_Right" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_light_pylon")
+position = Vector3(24.5, 8.0, -30.0)
+
+[node name="LightPylon_Right_Body" type="StaticBody3D" parent="Details"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Details/LightPylon_Right_Body"]
+position = Vector3(24.5, 8.0, -30.0)
+shape = SubResource("BoxShape3D_light_pylon")
+
+[node name="GateBlock" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_gate_block")
+position = Vector3(0, 5.0, -118.0)
+
+[node name="GateBlock_Body" type="StaticBody3D" parent="Details"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Details/GateBlock_Body"]
+position = Vector3(0, 5.0, -118.0)
+shape = SubResource("BoxShape3D_gate_block")
+
+[node name="GateSign" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_sign_panel")
+position = Vector3(0, 8.8, -115.3)
+
+[node name="FarEndLight_Left" type="OmniLight3D" parent="Details"]
+position = Vector3(-8.0, 5.4, -111.0)
+light_color = Color(0.96, 0.78, 0.56, 1)
+light_energy = 1.15
+light_volumetric_fog_energy = 0.95
+omni_range = 16.0
+shadow_enabled = true
+
+[node name="FarEndLight_Right" type="OmniLight3D" parent="Details"]
+position = Vector3(8.0, 5.4, -111.0)
+light_color = Color(0.96, 0.78, 0.56, 1)
+light_energy = 1.15
+light_volumetric_fog_energy = 0.95
+omni_range = 16.0
+shadow_enabled = true
+
+[node name="Guardrail_Left" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_guardrail")
+position = Vector3(-23.0, 1.05, -18)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="Guardrail_Left_Post_A" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_guard_post")
+position = Vector3(-23.0, 0.55, -23.2)
+
+[node name="Guardrail_Left_Post_B" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_guard_post")
+position = Vector3(-23.0, 0.55, -18.0)
+
+[node name="Guardrail_Left_Post_C" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_guard_post")
+position = Vector3(-23.0, 0.55, -12.8)
+
+[node name="Guardrail_Right" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_guardrail")
+position = Vector3(23.0, 1.05, -46)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="Guardrail_Right_Post_A" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_guard_post")
+position = Vector3(23.0, 0.55, -51.2)
+
+[node name="Guardrail_Right_Post_B" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_guard_post")
+position = Vector3(23.0, 0.55, -46.0)
+
+[node name="Guardrail_Right_Post_C" type="MeshInstance3D" parent="Details"]
+mesh = SubResource("BoxMesh_guard_post")
+position = Vector3(23.0, 0.55, -40.8)
 
 [node name="FogVolumes" type="Node3D" parent="."]
 
@@ -221,3 +606,6 @@ draw_pass_1 = SubResource("QuadMesh_mist_b")
 draw_passes = 1
 emitting = true
 visibility_aabb = AABB(-34, -6, -52, 68, 18, 104)
+
+[node name="DevHUD" type="CanvasLayer" parent="."]
+script = ExtResource("13_dev_hud_script")
