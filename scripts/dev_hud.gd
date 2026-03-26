@@ -144,6 +144,12 @@ func _build_ui() -> void:
 	gizmo_toggle.toggled.connect(_on_route_gizmo_toggled)
 	button_row.add_child(gizmo_toggle)
 
+	var mute_toggle := CheckBox.new()
+	mute_toggle.text = "Mute"
+	mute_toggle.button_pressed = false
+	mute_toggle.toggled.connect(_on_mute_toggled)
+	button_row.add_child(mute_toggle)
+
 	var dump_label := Label.new()
 	dump_label.text = "Runtime value dump"
 	layout.add_child(dump_label)
@@ -345,6 +351,10 @@ func _get_slider_value(key: String) -> float:
 
 func _format_color(color: Color) -> String:
 	return "Color(%.3f, %.3f, %.3f, %.3f)" % [color.r, color.g, color.b, color.a]
+
+
+func _on_mute_toggled(button_pressed: bool) -> void:
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), button_pressed)
 
 
 func _on_route_gizmo_toggled(button_pressed: bool) -> void:

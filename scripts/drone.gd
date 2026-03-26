@@ -36,16 +36,24 @@ var _route_gizmo: MeshInstance3D
 
 var _hum_player: AudioStreamPlayer3D
 var _alert_player: AudioStreamPlayer3D
+var _shriek_player: AudioStreamPlayer3D
 var _hum_playback: AudioStreamGeneratorPlayback
+var _shriek_playback: AudioStreamGeneratorPlayback
 var _alert_fired: bool = false
 var _hum_time: float = 0.0
+var _shriek_time: float = 0.0
 const _HUM_MIX_RATE: float = 44100.0
 
 
 func _ready() -> void:
+	add_to_group("drones")
 	_base_position = global_position
 	_route_position = global_position
 	_setup_drone_audio()
+
+
+func get_alert_level() -> float:
+	return _player_attention
 
 
 func _process(delta: float) -> void:
@@ -109,6 +117,18 @@ func _setup_drone_audio() -> void:
 	_alert_player.unit_size = 6.0
 	add_child(_alert_player)
 
+	var shriek_stream := AudioStreamGenerator.new()
+	shriek_stream.mix_rate = _HUM_MIX_RATE
+	shriek_stream.buffer_length = 0.3
+	_shriek_player = AudioStreamPlayer3D.new()
+	_shriek_player.stream = shriek_stream
+	_shriek_player.volume_db = -80.0
+	_shriek_player.max_distance = 50.0
+	_shriek_player.unit_size = 8.0
+	add_child(_shriek_player)
+	_shriek_player.play()
+	_shriek_playback = _shriek_player.get_stream_playback() as AudioStreamGeneratorPlayback
+
 
 func _update_audio(_delta: float) -> void:
 	_hum_player.volume_db = lerp(-22.0, -12.0, _player_attention)
@@ -125,6 +145,18 @@ func _update_audio(_delta: float) -> void:
 	elif not detecting and _player_attention < 0.2:
 		_alert_fired = false
 
+	# Shriek: ramps in above warning_threshold, intensifies toward full detection
+	if _player_attention > warning_threshold:
+		var shriek_norm: float = clamp((_player_attention - warning_threshold) / (1.0 - warning_threshold), 0.0, 1.0)
+		_shriek_player.volume_db = lerp(-80.0, -4.0, shriek_norm * shriek_norm)
+	else:
+		_shriek_player.volume_db = -80.0
+
+	if _shriek_playback != null:
+		var shriek_available := _shriek_playback.get_frames_available()
+		if shriek_available > 0:
+			_fill_shriek_buffer(shriek_available)
+
 
 func _fill_hum_buffer(frame_count: int) -> void:
 	var dt := 1.0 / _HUM_MIX_RATE
@@ -136,6 +168,22 @@ func _fill_hum_buffer(frame_count: int) -> void:
 		var sample := (base_tone + harmonic + noise) * chop * 0.38
 		_hum_playback.push_frame(Vector2(clamp(sample, -0.95, 0.95), clamp(sample, -0.95, 0.95)))
 		_hum_time += dt
+
+
+func _fill_shriek_buffer(frame_count: int) -> void:
+	var dt := 1.0 / _HUM_MIX_RATE
+	var shriek_norm: float = clamp((_player_attention - warning_threshold) / (1.0 - warning_threshold), 0.0, 1.0)
+	var pulse_rate: float = lerp(2.5, 10.0, shriek_norm)
+	var base_freq: float = lerp(900.0, 2600.0, shriek_norm)
+	for i in range(frame_count):
+		# Positive-half squared sine creates sharp pulses
+		var pulse_env: float = sin(TAU * pulse_rate * _shriek_time)
+		pulse_env = max(0.0, pulse_env)
+		pulse_env = pulse_env * pulse_env
+		# Fundamental + 3rd harmonic for harshness
+		var sample := (sin(TAU * base_freq * _shriek_time) * 0.7 + sin(TAU * base_freq * 3.0 * _shriek_time) * 0.3) * pulse_env * 0.45
+		_shriek_playback.push_frame(Vector2(clamp(sample, -0.95, 0.95), clamp(sample, -0.95, 0.95)))
+		_shriek_time += dt
 
 
 func _synthesize_alert() -> void:

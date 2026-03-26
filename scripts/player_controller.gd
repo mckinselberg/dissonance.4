@@ -33,6 +33,7 @@ var active_zones: Array = []
 var noise_stimulus: float = 0.0
 var movement_visibility: float = 0.0
 var _in_rest_zone: bool = false
+var _flashlight: SpotLight3D
 
 const _NOISE_DECAY: float = 4.0
 const _NOISE_WALK_STEP: float = 0.25
@@ -49,6 +50,8 @@ func _ready() -> void:
 	_setup_footstep_audio()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	state = StateModel.new()
+	_setup_flashlight()
+	_ensure_action("player_flashlight", KEY_F)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -61,6 +64,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		return
+
+	if event.is_action_pressed("player_flashlight"):
+		_flashlight.visible = not _flashlight.visible
+		get_viewport().set_input_as_handled()
 		return
 
 	if event is InputEventMouseMotion:
@@ -136,6 +144,20 @@ func _play_footstep() -> void:
 		noise_stimulus + (_NOISE_SPRINT_STEP if planar_speed > walk_speed else _NOISE_WALK_STEP),
 		0.0, 1.0
 	)
+
+
+func _setup_flashlight() -> void:
+	_flashlight = SpotLight3D.new()
+	_flashlight.position = Vector3(0.0, 0.0, -0.1)
+	_flashlight.light_color = Color(0.95, 0.92, 0.85)
+	_flashlight.light_energy = 2.8
+	_flashlight.spot_range = 18.0
+	_flashlight.spot_angle = 22.0
+	_flashlight.spot_angle_attenuation = 0.6
+	_flashlight.light_volumetric_fog_energy = 0.6
+	_flashlight.shadow_enabled = true
+	_flashlight.visible = false
+	head.add_child(_flashlight)
 
 
 func get_signal_visibility() -> float:

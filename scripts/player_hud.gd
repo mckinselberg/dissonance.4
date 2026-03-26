@@ -1,18 +1,51 @@
 extends CanvasLayer
 
 var _player: Node3D
+var _camera: Camera3D
 var _bars: Dictionary = {}
 var _zone_label: Label
 var _state_zone_label: Label
 var _hint_label: Label
+var _collect_label: Label
+var _completion_panel: Control
+var _gameover_panel: Control
+var _overlay: ColorRect
+
+const _OVERLAY_COLOR := Color(0.62, 0.02, 0.48)
+const _BURNOUT_THRESHOLD := 0.88
+const _BURNOUT_TIME_TO_GAMEOVER := 4.0
+
+var _burnout_exposure_time: float = 0.0
+var _burnout_triggered: bool = false
 
 
 func setup(player: Node3D) -> void:
 	_player = player
+	_camera = player.get_node_or_null("Head/Camera3D")
 	_build_ui()
 
 
-func _process(_delta: float) -> void:
+func setup_collection(manager: CollectionManager) -> void:
+	_collect_label.text = "♪  0 / %d" % manager.get_total()
+	manager.item_collected.connect(_on_item_collected)
+	manager.all_collected.connect(_on_all_collected)
+
+
+func _on_item_collected(count: int, total: int) -> void:
+	_collect_label.text = "♪  %d / %d" % [count, total]
+
+
+func _on_all_collected() -> void:
+	_collect_label.text = "♪  ✓ complete"
+	_collect_label.add_theme_color_override("font_color", Color(0.7, 1.0, 0.6))
+	_completion_panel.visible = true
+	var tween := create_tween()
+	tween.tween_interval(4.5)
+	tween.tween_property(_completion_panel, "modulate:a", 0.0, 1.2)
+	tween.tween_callback(_completion_panel.hide)
+
+
+func _process(delta: float) -> void:
 	if _player == null or not is_instance_valid(_player):
 		return
 	var state: StateModel = _player.get("state")
@@ -20,10 +53,72 @@ func _process(_delta: float) -> void:
 		return
 	_update_bars(state)
 	_update_labels(state)
+	_update_threat_fx(delta)
+	if not _burnout_triggered:
+		_update_burnout_timer(state, delta)
+
+
+func _update_threat_fx(delta: float) -> void:
+	var threat := _compute_drone_threat()
+
+	# Overlay: pulse intensity scales with threat
+	var pulse := sin(Time.get_ticks_msec() * 0.006) * 0.05 * threat
+	_overlay.color = Color(_OVERLAY_COLOR, clamp(threat * 0.32 + pulse, 0.0, 0.38))
+
+	# Camera jitter: quadratic ramp so it only kicks in at real threat
+	if _camera != null:
+		if threat > 0.15:
+			var jitter := threat * threat * 0.025
+			_camera.h_offset = randf_range(-jitter, jitter)
+			_camera.v_offset = randf_range(-jitter, jitter)
+		else:
+			_camera.h_offset = lerp(_camera.h_offset, 0.0, delta * 10.0)
+			_camera.v_offset = lerp(_camera.v_offset, 0.0, delta * 10.0)
+
+
+func _update_burnout_timer(state: StateModel, delta: float) -> void:
+	if state.burnout_risk >= _BURNOUT_THRESHOLD:
+		_burnout_exposure_time += delta
+		if _burnout_exposure_time >= _BURNOUT_TIME_TO_GAMEOVER:
+			_trigger_burnout_gameover()
+	else:
+		_burnout_exposure_time = max(0.0, _burnout_exposure_time - delta * 0.5)
+
+
+func _trigger_burnout_gameover() -> void:
+	_burnout_triggered = true
+	_overlay.color = Color(_OVERLAY_COLOR, 0.85)
+	_gameover_panel.visible = true
+	var tween := create_tween()
+	tween.tween_interval(2.5)
+	tween.tween_callback(Callable(get_tree(), "reload_current_scene"))
+
+
+func _compute_drone_threat() -> float:
+	if _player == null:
+		return 0.0
+	var drones := get_tree().get_nodes_in_group("drones")
+	var max_threat := 0.0
+	var player_pos := _player.global_position
+	for drone in drones:
+		if not drone.has_method("get_alert_level"):
+			continue
+		var alert: float = drone.call("get_alert_level")
+		var dist: float = player_pos.distance_to(drone.global_position)
+		var range: float = float(drone.get("detection_range"))
+		var dist_factor: float = clamp(1.0 - dist / (range * 1.5), 0.0, 1.0)
+		max_threat = max(max_threat, alert * (0.5 + dist_factor * 0.5))
+	return clamp(max_threat, 0.0, 1.0)
 
 
 func _build_ui() -> void:
 	layer = 5
+
+	_overlay = ColorRect.new()
+	_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_overlay.color = Color(_OVERLAY_COLOR, 0.0)
+	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_overlay)
 
 	var panel := PanelContainer.new()
 	panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -80,6 +175,23 @@ func _build_ui() -> void:
 
 	_hint_label = _make_label("", Color(0.65, 0.65, 0.55))
 	vbox.add_child(_hint_label)
+
+	var sep4 := HSeparator.new()
+	vbox.add_child(sep4)
+
+	_collect_label = _make_label("♪  — / —", Color(0.85, 0.78, 0.35))
+	_collect_label.add_theme_font_size_override("font_size", 11)
+	vbox.add_child(_collect_label)
+
+	# Completion panel — centered, hidden until all collected
+	_completion_panel = _build_completion_panel()
+	_completion_panel.visible = false
+	add_child(_completion_panel)
+
+	# Game-over panel — hidden until burnout threshold
+	_gameover_panel = _build_gameover_panel()
+	_gameover_panel.visible = false
+	add_child(_gameover_panel)
 
 
 func _add_bar(parent: VBoxContainer, key: String, label_text: String, color: Color, scale: int = 1) -> void:
@@ -152,6 +264,106 @@ func _update_labels(state: StateModel) -> void:
 func _set_bar(key: String, value: float) -> void:
 	if _bars.has(key):
 		_bars[key].value = value
+
+
+func _build_completion_panel() -> Control:
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -240.0
+	panel.offset_top = -80.0
+	panel.offset_right = 240.0
+	panel.offset_bottom = 80.0
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.02, 0.08, 0.88)
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_color = Color(0.62, 0.02, 0.48, 0.6)
+	panel.add_theme_stylebox_override("panel", style)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_top", 18)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_bottom", 18)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "♫  All signals recovered  ♫"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 16)
+	title.add_theme_color_override("font_color", Color(0.95, 0.88, 0.4))
+	vbox.add_child(title)
+
+	var subtitle := Label.new()
+	subtitle.text = "The signal harmonizes."
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 11)
+	subtitle.add_theme_color_override("font_color", Color(0.72, 0.65, 0.85))
+	vbox.add_child(subtitle)
+
+	return panel
+
+
+func _build_gameover_panel() -> Control:
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -280.0
+	panel.offset_top = -100.0
+	panel.offset_right = 280.0
+	panel.offset_bottom = 100.0
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.01, 0.04, 0.95)
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_color = Color(0.88, 0.05, 0.35, 0.9)
+	panel.add_theme_stylebox_override("panel", style)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 28)
+	margin.add_theme_constant_override("margin_top", 22)
+	margin.add_theme_constant_override("margin_right", 28)
+	margin.add_theme_constant_override("margin_bottom", 22)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 10)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "SIGNAL OVERLOAD"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_color_override("font_color", Color(1.0, 0.12, 0.35))
+	vbox.add_child(title)
+
+	var subtitle := Label.new()
+	subtitle.text = "The signal consumes you.\nRestarting..."
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 11)
+	subtitle.add_theme_color_override("font_color", Color(0.78, 0.55, 0.68))
+	vbox.add_child(subtitle)
+
+	return panel
 
 
 func _make_label(text: String, color: Color) -> Label:
