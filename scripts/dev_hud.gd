@@ -2,6 +2,34 @@ extends CanvasLayer
 
 const TOGGLE_ACTION := &"dev_hud_toggle"
 
+const PRESET_NIGHT := {
+	"ambient_energy": 0.30,
+	"exposure": 1.08,
+	"directional_energy": 0.28,
+	"streetlight_multiplier": 1.0,
+	"glow_strength": 0.6,
+	"fog_density": 0.015,
+	"volumetric_fog_density": 0.009,
+	"ground_fog_a": 0.28,
+	"ground_fog_b": 0.20,
+	"mid_fog_a": 0.10,
+	"background_color": Color(0.018, 0.019, 0.023),
+}
+
+const PRESET_DAY := {
+	"ambient_energy": 0.55,
+	"exposure": 1.20,
+	"directional_energy": 0.55,
+	"streetlight_multiplier": 0.3,
+	"glow_strength": 0.2,
+	"fog_density": 0.004,
+	"volumetric_fog_density": 0.002,
+	"ground_fog_a": 0.05,
+	"ground_fog_b": 0.04,
+	"mid_fog_a": 0.02,
+	"background_color": Color(0.38, 0.52, 0.72),
+}
+
 var _environment: Environment
 var _directional_light: DirectionalLight3D
 var _street_lights: Node3D
@@ -67,7 +95,7 @@ func _build_ui() -> void:
 	_panel.offset_left = 16.0
 	_panel.offset_top = 16.0
 	_panel.offset_right = 356.0
-	_panel.offset_bottom = 548.0
+	_panel.offset_bottom = 592.0
 	add_child(_panel)
 
 	var margin := MarginContainer.new()
@@ -88,6 +116,8 @@ func _build_ui() -> void:
 	var hint := Label.new()
 	hint.text = "F1 toggle, drag sliders live"
 	layout.add_child(hint)
+
+	_build_preset_buttons(layout)
 
 	_add_slider(layout, "ambient_energy", "Ambient", 0.0, 0.6, 0.01)
 	_add_slider(layout, "exposure", "Exposure", 0.6, 1.4, 0.01)
@@ -329,3 +359,32 @@ func _is_route_gizmo_visible() -> bool:
 	var route_root := get_parent().get_node_or_null("DroneRoute")
 	var gizmo := route_root.get_node_or_null("RouteGizmo") if route_root else null
 	return gizmo.visible if gizmo else false
+
+
+func _build_preset_buttons(parent: VBoxContainer) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	parent.add_child(row)
+
+	var night_btn := Button.new()
+	night_btn.text = "Night"
+	night_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	night_btn.pressed.connect(_apply_preset.bind(PRESET_NIGHT))
+	row.add_child(night_btn)
+
+	var day_btn := Button.new()
+	day_btn.text = "Day"
+	day_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	day_btn.pressed.connect(_apply_preset.bind(PRESET_DAY))
+	row.add_child(day_btn)
+
+
+func _apply_preset(preset: Dictionary) -> void:
+	for key in preset:
+		if key == "background_color":
+			if _environment:
+				_environment.background_color = preset[key]
+			continue
+		if _rows.has(key):
+			_rows[key]["slider"].value = preset[key]
+	_refresh_dump_text()

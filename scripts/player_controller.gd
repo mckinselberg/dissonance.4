@@ -25,6 +25,7 @@ var _head_base_position: Vector3
 var _bob_time: float = 0.0
 var _footstep_timer: float = 0.0
 var _footstep_playback: AudioStreamGeneratorPlayback
+var _current_interval: float = 0.58
 
 
 func _ready() -> void:
@@ -83,6 +84,9 @@ func _update_head_bob_and_footsteps(delta: float, input_vector: Vector2, speed: 
 	var planar_speed := Vector2(velocity.x, velocity.z).length()
 	var is_moving_on_floor := is_on_floor() and planar_speed > 0.1 and input_vector.length_squared() > 0.0
 
+	var target_interval := footstep_interval_sprint if speed > walk_speed else footstep_interval_walk
+	_current_interval = lerp(_current_interval, target_interval, min(delta / 0.3, 1.0))
+
 	if is_moving_on_floor:
 		var bob_speed_scale := speed / walk_speed
 		_bob_time += delta * bob_frequency * bob_speed_scale * TAU
@@ -93,7 +97,7 @@ func _update_head_bob_and_footsteps(delta: float, input_vector: Vector2, speed: 
 		_footstep_timer -= delta
 		if _footstep_timer <= 0.0:
 			_play_footstep()
-			_footstep_timer = footstep_interval_sprint if speed > walk_speed else footstep_interval_walk
+			_footstep_timer = _current_interval * randf_range(0.88, 1.12)
 	else:
 		_bob_time = 0.0
 		_footstep_timer = 0.0
@@ -154,11 +158,13 @@ func _generate_footstep_waveform() -> void:
 	var splash_amount := randf_range(0.22, 0.34)
 	var hiss_amount := randf_range(0.05, 0.1)
 	var phase := randf_range(0.0, TAU)
+	var amplitude_scale := randf_range(0.88, 1.0)
+	var splash_decay := randf_range(32.0, 40.0)
 
 	for i in range(sample_count):
 		var t := float(i) / mix_rate
 		var body_envelope := exp(-t * 22.0)
-		var splash_envelope := exp(-t * 36.0)
+		var splash_envelope := exp(-t * splash_decay)
 		var hiss_envelope := exp(-t * 65.0)
 		var low_body := sin(TAU * tone_frequency * t + phase) * 0.33
 		var soft_slap := sin(TAU * slap_frequency * t) * 0.11 * exp(-t * 30.0)
@@ -168,6 +174,6 @@ func _generate_footstep_waveform() -> void:
 			(low_body + soft_slap) * body_envelope +
 			splash_noise * splash_envelope +
 			hiss_noise * hiss_envelope
-		) * 0.42
+		) * 0.42 * amplitude_scale
 		sample = clamp(sample, -0.95, 0.95)
 		_footstep_playback.push_frame(Vector2(sample, sample))

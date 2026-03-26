@@ -1,5 +1,7 @@
 extends Node3D
 
+const SceneProps := preload("res://scripts/scene_props.gd")
+
 @onready var drone: Node3D = $Drone
 @onready var drone_route: Node3D = $DroneRoute
 @onready var mist_a: GPUParticles3D = $MistParticles_A
@@ -27,3 +29,7 @@ func _ready() -> void:
 		var lamp_light: OmniLight3D = child.get_node_or_null("LampLight")
 		if lamp_light:
 			lamp_light.light_energy *= energy_scale
+
+	var props_spawner := SceneProps.new()
+	add_child(props_spawner)
+	props_spawner.setup(self)

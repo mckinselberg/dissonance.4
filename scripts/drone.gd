@@ -29,10 +29,18 @@ var _player_attention: float = 0.0
 var _player: Node3D
 var _route_gizmo: MeshInstance3D
 
+var _hum_player: AudioStreamPlayer3D
+var _alert_player: AudioStreamPlayer3D
+var _hum_playback: AudioStreamGeneratorPlayback
+var _alert_fired: bool = false
+var _hum_time: float = 0.0
+const _HUM_MIX_RATE: float = 44100.0
+
 
 func _ready() -> void:
 	_base_position = global_position
 	_route_position = global_position
+	_setup_drone_audio()
 
 
 func _process(delta: float) -> void:
@@ -66,9 +74,89 @@ func _process(delta: float) -> void:
 	var boosted_max := pulse_max_energy + 1.1 * _player_attention
 	red_light.light_energy = lerp(pulse_min_energy, boosted_max, pulse)
 
+	_update_audio(delta)
+
 
 func randomize_motion(seed_value: float) -> void:
 	_phase = seed_value
+
+
+func _setup_drone_audio() -> void:
+	var hum_stream := AudioStreamGenerator.new()
+	hum_stream.mix_rate = _HUM_MIX_RATE
+	hum_stream.buffer_length = 0.5
+	_hum_player = AudioStreamPlayer3D.new()
+	_hum_player.stream = hum_stream
+	_hum_player.volume_db = -22.0
+	_hum_player.max_distance = 35.0
+	_hum_player.unit_size = 4.0
+	add_child(_hum_player)
+	_hum_player.play()
+	_hum_playback = _hum_player.get_stream_playback() as AudioStreamGeneratorPlayback
+
+	var alert_stream := AudioStreamGenerator.new()
+	alert_stream.mix_rate = _HUM_MIX_RATE
+	alert_stream.buffer_length = 0.25
+	_alert_player = AudioStreamPlayer3D.new()
+	_alert_player.stream = alert_stream
+	_alert_player.volume_db = 0.0
+	_alert_player.max_distance = 40.0
+	_alert_player.unit_size = 6.0
+	add_child(_alert_player)
+
+
+func _update_audio(_delta: float) -> void:
+	_hum_player.volume_db = lerp(-22.0, -12.0, _player_attention)
+
+	if _hum_playback != null:
+		var available := _hum_playback.get_frames_available()
+		if available > 0:
+			_fill_hum_buffer(available)
+
+	var detecting := _player_attention > 0.6
+	if detecting and not _alert_fired:
+		_alert_fired = true
+		_synthesize_alert()
+	elif not detecting and _player_attention < 0.2:
+		_alert_fired = false
+
+
+func _fill_hum_buffer(frame_count: int) -> void:
+	var dt := 1.0 / _HUM_MIX_RATE
+	for i in range(frame_count):
+		var chop := 1.0 + 0.08 * sin(TAU * 12.0 * _hum_time)
+		var base_tone := sin(TAU * 110.0 * _hum_time) * 0.5
+		var harmonic := sin(TAU * 220.0 * _hum_time) * 0.2
+		var noise := randf_range(-1.0, 1.0) * 0.06
+		var sample := (base_tone + harmonic + noise) * chop * 0.38
+		_hum_playback.push_frame(Vector2(clamp(sample, -0.95, 0.95), clamp(sample, -0.95, 0.95)))
+		_hum_time += dt
+
+
+func _synthesize_alert() -> void:
+	_alert_player.play()
+	var playback := _alert_player.get_stream_playback() as AudioStreamGeneratorPlayback
+	if playback == null:
+		return
+
+	# Rising chirp: 320 -> 640 Hz over 0.08 s
+	var chirp_count := int(0.08 * _HUM_MIX_RATE)
+	for i in range(chirp_count):
+		var t := float(i) / _HUM_MIX_RATE
+		var freq: float = lerp(320.0, 640.0, float(i) / chirp_count)
+		var sample := sin(TAU * freq * t) * exp(-t * 8.0) * 0.55
+		playback.push_frame(Vector2(sample, sample))
+
+	# Brief silence: 0.03 s
+	for _i in range(int(0.03 * _HUM_MIX_RATE)):
+		playback.push_frame(Vector2.ZERO)
+
+	# Click transient: 1200 Hz, sharp decay
+	var click_count := int(0.04 * _HUM_MIX_RATE)
+	for i in range(click_count):
+		var t := float(i) / _HUM_MIX_RATE
+		var sample := sin(TAU * 1200.0 * t) * exp(-t * 80.0) * 0.7
+		playback.push_frame(Vector2(sample, sample))
 
 
 func set_route(route_root: Node3D) -> void:
