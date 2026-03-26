@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/main_scene_setup.gd" id="1_main_script"]
 [ext_resource type="Script" path="res://scripts/mist_controller.gd" id="2_mist_script"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/drone.tscn" id="7_drone_scene"]
 [ext_resource type="PackedScene" path="res://scenes/tower_block.tscn" id="8_tower_scene"]
 [ext_resource type="PackedScene" path="res://scenes/streetlight.tscn" id="9_streetlight_scene"]
+[ext_resource type="Script" path="res://scripts/player_controller.gd" id="10_player_script"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
 size = Vector3(80, 0.2, 180)
@@ -17,6 +18,16 @@ material = ExtResource("4_ground_mat")
 [sub_resource type="BoxMesh" id="BoxMesh_main_tower"]
 size = Vector3(18, 40, 18)
 material = ExtResource("5_tower_mat")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(80, 0.2, 180)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_main_tower"]
+size = Vector3(18, 40, 18)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.35
+height = 1.1
 
 [sub_resource type="FogMaterial" id="FogMaterial_ground_a"]
 albedo = Color(0.32, 0.31, 0.29, 1)
@@ -84,21 +95,46 @@ light_angular_distance = 2.0
 shadow_enabled = true
 light_volumetric_fog_energy = 0.4
 
-[node name="Camera3D" type="Camera3D" parent="."]
-position = Vector3(0, 1.7, 12)
+[node name="Player" type="CharacterBody3D" parent="."]
+script = ExtResource("10_player_script")
+position = Vector3(0, 0.85, 12)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="Head" type="Node3D" parent="Player"]
+position = Vector3(0, 1.55, 0)
 rotation_degrees = Vector3(-4, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Player/Head"]
 current = true
 fov = 52.0
 near = 0.05
 far = 300.0
 
+[node name="FootstepPlayer" type="AudioStreamPlayer" parent="Player"]
+bus = &"Master"
+
 [node name="Ground" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_ground")
 position = Vector3(0, -0.1, -40)
 
+[node name="GroundBody" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GroundBody"]
+position = Vector3(0, -0.1, -40)
+shape = SubResource("BoxShape3D_ground")
+
 [node name="Tower_Main" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_main_tower")
 position = Vector3(-14, 20, -20)
+
+[node name="Tower_Main_Body" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tower_Main_Body"]
+position = Vector3(-14, 20, -20)
+shape = SubResource("BoxShape3D_main_tower")
 
 [node name="Skyline_Group" type="Node3D" parent="."]
 

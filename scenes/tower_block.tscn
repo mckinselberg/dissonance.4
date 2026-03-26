@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Material" path="res://materials/tower_dark.tres" id="1_tower_mat"]
 
@@ -6,8 +6,17 @@
 size = Vector3(8, 24, 8)
 material = ExtResource("1_tower_mat")
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_tower"]
+size = Vector3(8, 24, 8)
+
 [node name="TowerBlock" type="Node3D"]
 
 [node name="Block" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_tower")
 position = Vector3(0, 12, 0)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+position = Vector3(0, 12, 0)
+shape = SubResource("BoxShape3D_tower")
