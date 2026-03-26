@@ -1,0 +1,33 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Material" path="res://materials/streetlight_pole.tres" id="1_pole_mat"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pole"]
+top_radius = 0.08
+bottom_radius = 0.11
+height = 6.5
+material = ExtResource("1_pole_mat")
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+radius = 0.18
+height = 0.36
+material = ExtResource("1_pole_mat")
+
+[node name="StreetLight" type="Node3D"]
+
+[node name="Pole" type="MeshInstance3D" parent="."]
+mesh = SubResource("CylinderMesh_pole")
+position = Vector3(0, 3.25, 0)
+
+[node name="LampHead" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_head")
+position = Vector3(0, 6.3, 0)
+
+[node name="LampLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 6.15, 0)
+light_color = Color(1, 0.69, 0.42, 1)
+light_energy = 1.55
+light_volumetric_fog_energy = 1.8
+omni_range = 12.0
+omni_attenuation = 1.0
+shadow_enabled = true

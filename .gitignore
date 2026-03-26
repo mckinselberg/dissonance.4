@@ -1,0 +1,20 @@
+# Godot 4 generated cache and import data
+.godot/
+
+# Godot 3 import data (harmless to keep for mixed/legacy projects)
+.import/
+
+# Export configuration credentials (machine/user-specific secrets)
+export_credentials.cfg
+
+# C# / Mono build artifacts
+.mono/
+data_*/
+
+# Common editor/OS noise
+.vscode/
+.idea/
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
