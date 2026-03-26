@@ -12,6 +12,11 @@ extends Node3D
 @export var turn_speed: float = 1.8
 @export var detection_range: float = 20.0
 @export var route_gizmo_height: float = 0.15
+@export var sensitivity: float = 1.15
+@export var alert_decay: float = 0.26
+@export var warning_threshold: float = 0.55
+@export var detection_threshold: float = 0.95
+@export var noise_range_factor: float = 0.5
 
 @onready var rotor_left: MeshInstance3D = $Rotor_Left
 @onready var rotor_right: MeshInstance3D = $Rotor_Right
@@ -207,7 +212,7 @@ func _update_route_position(delta: float) -> void:
 			_route_index = (_route_index + 1) % _route_points.size()
 
 	var travel := _route_position - previous_position
-	if _player and _player_attention > 0.25:
+	if _player and _player_attention >= warning_threshold:
 		var to_player := _player.global_position - global_position
 		var target_yaw_player := atan2(-to_player.x, -to_player.z)
 		rotation.y = lerp_angle(rotation.y, target_yaw_player, delta * turn_speed * 1.3)
@@ -218,23 +223,50 @@ func _update_route_position(delta: float) -> void:
 
 func _update_player_attention(delta: float) -> void:
 	if _player == null:
-		_player_attention = move_toward(_player_attention, 0.0, delta)
+		_player_attention = move_toward(_player_attention, 0.0, alert_decay * delta)
 		return
 
 	var to_player := _player.global_position - global_position
-	var in_range := to_player.length() <= detection_range
-	var can_see_player := false
+	var dist := to_player.length()
+	var dist_factor: float = clamp(1.0 - dist / detection_range, 0.0, 1.0)
 
-	if in_range:
+	# ── Signal channel: internal state (no LOS required) ────────────
+	var signal_vis: float = 0.0
+	var coherence: float = 0.5
+	var player_state = _player.get("state")
+	if player_state != null:
+		signal_vis = float(player_state.get("signal_visibility"))
+		coherence = float(player_state.get("harmonic_coherence"))
+	var coherence_shield: float = lerp(1.0, 0.72, coherence)
+	var signal_rate: float = signal_vis * dist_factor * coherence_shield
+
+	# ── Noise channel: footsteps and landing (no LOS required) ──────
+	var noise_dist_factor: float = clamp(1.0 - dist / (detection_range * noise_range_factor), 0.0, 1.0)
+	var noise_stim: float = 0.0
+	if "noise_stimulus" in _player:
+		noise_stim = float(_player.get("noise_stimulus"))
+	var noise_rate: float = noise_stim * noise_dist_factor
+
+	# ── Visual channel: movement visibility (LOS required) ──────────
+	var visual_rate := 0.0
+	if dist <= detection_range:
 		var space_state := get_world_3d().direct_space_state
 		var query := PhysicsRayQueryParameters3D.create(global_position, _player.global_position + Vector3(0.0, 1.4, 0.0))
 		query.exclude = [self]
 		var hit := space_state.intersect_ray(query)
-		can_see_player = hit.is_empty() or hit.get("collider") == _player
+		if hit.is_empty() or hit.get("collider") == _player:
+			var move_vis: float = 0.0
+			if "movement_visibility" in _player:
+				move_vis = float(_player.get("movement_visibility"))
+			visual_rate = move_vis * dist_factor
 
-	var target_attention := 1.0 if in_range and can_see_player else 0.0
-	var rate := 1.8 if target_attention > _player_attention else 0.9
-	_player_attention = move_toward(_player_attention, target_attention, delta * rate)
+	# ── Combine and accumulate ───────────────────────────────────────
+	var total_rate := (signal_rate + noise_rate + visual_rate) * sensitivity
+	if total_rate > 0.01:
+		_player_attention = clamp(_player_attention + total_rate * delta, 0.0, 1.0)
+	else:
+		var decay := alert_decay * (0.6 + (1.0 - dist_factor))
+		_player_attention = clamp(_player_attention - decay * delta, 0.0, 1.0)
 
 
 func _build_route_gizmo(route_root: Node3D) -> void:

@@ -26,6 +26,18 @@ var _bob_time: float = 0.0
 var _footstep_timer: float = 0.0
 var _footstep_playback: AudioStreamGeneratorPlayback
 var _current_interval: float = 0.58
+var _was_on_floor: bool = true
+
+var state: StateModel
+var active_zones: Array = []
+var noise_stimulus: float = 0.0
+var movement_visibility: float = 0.0
+var _in_rest_zone: bool = false
+
+const _NOISE_DECAY: float = 4.0
+const _NOISE_WALK_STEP: float = 0.25
+const _NOISE_SPRINT_STEP: float = 0.55
+const _NOISE_LAND: float = 0.70
 
 
 func _ready() -> void:
@@ -36,6 +48,7 @@ func _ready() -> void:
 	footstep_player.volume_db = footstep_volume_db
 	_setup_footstep_audio()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	state = StateModel.new()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -77,7 +90,16 @@ func _physics_process(delta: float) -> void:
 		velocity.y = 0.0
 
 	move_and_slide()
+
+	if is_on_floor() and not _was_on_floor:
+		noise_stimulus = clamp(noise_stimulus + _NOISE_LAND, 0.0, 1.0)
+	_was_on_floor = is_on_floor()
+
 	_update_head_bob_and_footsteps(delta, input_vector, speed)
+	_update_state_model(delta, speed)
+	noise_stimulus = move_toward(noise_stimulus, 0.0, _NOISE_DECAY * delta)
+	var is_moving := input_vector.length_squared() > 0.0 and is_on_floor()
+	movement_visibility = 0.4 if (is_moving and speed > walk_speed) else (0.12 if is_moving else 0.0)
 
 
 func _update_head_bob_and_footsteps(delta: float, input_vector: Vector2, speed: float) -> void:
@@ -109,6 +131,61 @@ func _play_footstep() -> void:
 		return
 
 	_generate_footstep_waveform()
+	var planar_speed := Vector2(velocity.x, velocity.z).length()
+	noise_stimulus = clamp(
+		noise_stimulus + (_NOISE_SPRINT_STEP if planar_speed > walk_speed else _NOISE_WALK_STEP),
+		0.0, 1.0
+	)
+
+
+func get_signal_visibility() -> float:
+	return state.signal_visibility
+
+
+func register_zone(zone: ZoneArea3D) -> void:
+	if not active_zones.has(zone):
+		active_zones.append(zone)
+
+
+func unregister_zone(zone: ZoneArea3D) -> void:
+	active_zones.erase(zone)
+
+
+func _update_state_model(delta: float, speed: float) -> void:
+	var is_sprinting := speed > walk_speed
+	var is_moving := Vector2(velocity.x, velocity.z).length() > 0.2
+	var regulating := Input.is_action_pressed("player_regulate")
+	var resting := Input.is_action_pressed("player_rest")
+
+	# Accumulate zone inputs
+	var z_social: float = 0.0
+	var z_sensory: float = 0.0
+	var z_rest: float = 0.0
+	var z_musical: float = 0.0
+	var z_solitude: float = 0.0
+	var z_calming: float = 0.0
+	_in_rest_zone = false
+	for zone in active_zones:
+		z_social += float(zone.get("social_exposure"))
+		z_sensory += float(zone.get("sensory_exposure"))
+		z_rest += float(zone.get("rest_input"))
+		z_musical += float(zone.get("musical_regulation"))
+		z_solitude += float(zone.get("solitude_regulation"))
+		z_calming += float(zone.get("calming_input"))
+		if float(zone.get("rest_input")) > 0.0:
+			_in_rest_zone = true
+
+	state.update_state(
+		delta,
+		0.5 if is_sprinting else 0.14,
+		z_social,
+		z_sensory,
+		z_rest if (resting and _in_rest_zone) else 0.0,
+		(0.82 + z_musical) if regulating else z_musical,
+		0.15 if (is_moving and not is_sprinting) else 0.0,
+		z_solitude,
+		(0.7 + z_calming) if regulating else z_calming,
+	)
 
 
 func _setup_input_map() -> void:
@@ -118,6 +195,8 @@ func _setup_input_map() -> void:
 	_ensure_action("move_right", KEY_D)
 	_ensure_action("move_sprint", KEY_SHIFT)
 	_ensure_action("move_jump", KEY_SPACE)
+	_ensure_action("player_regulate", KEY_R)
+	_ensure_action("player_rest", KEY_E)
 
 
 func _ensure_action(action_name: StringName, keycode: Key) -> void:

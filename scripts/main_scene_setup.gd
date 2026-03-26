@@ -1,6 +1,8 @@
 extends Node3D
 
 const SceneProps := preload("res://scripts/scene_props.gd")
+const ZonesSetup := preload("res://scripts/zones_setup.gd")
+const PlayerHud := preload("res://scripts/player_hud.gd")
 
 @onready var drone: Node3D = $Drone
 @onready var drone_route: Node3D = $DroneRoute
@@ -33,3 +35,11 @@ func _ready() -> void:
 	var props_spawner := SceneProps.new()
 	add_child(props_spawner)
 	props_spawner.setup(self)
+
+	var zones_spawner := ZonesSetup.new()
+	add_child(zones_spawner)
+	zones_spawner.setup(self)
+
+	var hud := PlayerHud.new()
+	add_child(hud)
+	hud.setup(player)
