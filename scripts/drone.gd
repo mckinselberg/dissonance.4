@@ -12,11 +12,13 @@ extends Node3D
 @export var turn_speed: float = 1.8
 @export var detection_range: float = 20.0
 @export var route_gizmo_height: float = 0.15
-@export var sensitivity: float = 1.15
-@export var alert_decay: float = 0.26
-@export var warning_threshold: float = 0.55
-@export var detection_threshold: float = 0.95
+@export var sensitivity: float = 2.5
+@export var alert_decay: float = 0.06
+@export var warning_threshold: float = 0.30
+@export var detection_threshold: float = 0.60
 @export var noise_range_factor: float = 0.5
+@export var chase_speed: float = 9.0
+@export var chase_height: float = 5.5
 
 @onready var rotor_left: MeshInstance3D = $Rotor_Left
 @onready var rotor_right: MeshInstance3D = $Rotor_Right
@@ -33,6 +35,7 @@ var _waiting_at_waypoint: bool = false
 var _player_attention: float = 0.0
 var _player: Node3D
 var _route_gizmo: MeshInstance3D
+var _pursuing: bool = false
 
 var _hum_player: AudioStreamPlayer3D
 var _alert_player: AudioStreamPlayer3D
@@ -71,8 +74,9 @@ func _process(delta: float) -> void:
 
 	var anchor_position := _route_position
 	if _player and _player_attention > 0.0:
-		var player_anchor := _player.global_position + Vector3(0.0, 6.5, 0.0)
-		anchor_position = anchor_position.lerp(player_anchor, 0.24 * _player_attention)
+		var player_anchor := _player.global_position + Vector3(0.0, chase_height, 0.0)
+		var bias := 0.85 if _pursuing else (0.24 * _player_attention)
+		anchor_position = anchor_position.lerp(player_anchor, bias)
 
 	global_position = anchor_position + Vector3(sway_x, hover_offset, sway_z)
 
@@ -237,33 +241,39 @@ func set_route_gizmo_visible(is_visible: bool) -> void:
 
 
 func _update_route_position(delta: float) -> void:
-	if _waiting_at_waypoint:
-		_wait_timer -= delta
-		if _wait_timer <= 0.0:
-			_waiting_at_waypoint = false
-			_route_index = (_route_index + 1) % _route_points.size()
-		return
-
-	var target_node := _route_points[_route_index]
-	var target := target_node.global_position
 	var previous_position := _route_position
-	var current_speed: float = patrol_speed * lerp(1.0, 0.52, _player_attention)
-	_route_position = _route_position.move_toward(target, current_speed * delta)
 
-	if _route_position.distance_to(target) < 0.35:
-		_route_position = target
-		var wait_time: float = target_node.get("wait_time")
-		if wait_time > 0.0:
-			_waiting_at_waypoint = true
-			_wait_timer = wait_time
+	if _pursuing and _player != null:
+		# Chase mode: move route anchor directly toward player at chase height
+		var chase_target := Vector3(_player.global_position.x, _player.global_position.y + chase_height, _player.global_position.z)
+		_route_position = _route_position.move_toward(chase_target, chase_speed * delta)
+	else:
+		if _waiting_at_waypoint:
+			_wait_timer -= delta
+			if _wait_timer <= 0.0:
+				_waiting_at_waypoint = false
+				_route_index = (_route_index + 1) % _route_points.size()
 		else:
-			_route_index = (_route_index + 1) % _route_points.size()
+			var target_node := _route_points[_route_index]
+			var target := target_node.global_position
+			var current_speed: float = patrol_speed * lerp(1.0, 0.65, _player_attention)
+			_route_position = _route_position.move_toward(target, current_speed * delta)
+
+			if _route_position.distance_to(target) < 0.35:
+				_route_position = target
+				var wait_time: float = target_node.get("wait_time")
+				if wait_time > 0.0:
+					_waiting_at_waypoint = true
+					_wait_timer = wait_time
+				else:
+					_route_index = (_route_index + 1) % _route_points.size()
 
 	var travel := _route_position - previous_position
 	if _player and _player_attention >= warning_threshold:
 		var to_player := _player.global_position - global_position
 		var target_yaw_player := atan2(-to_player.x, -to_player.z)
-		rotation.y = lerp_angle(rotation.y, target_yaw_player, delta * turn_speed * 1.3)
+		var yaw_speed := turn_speed * (2.2 if _pursuing else 1.3)
+		rotation.y = lerp_angle(rotation.y, target_yaw_player, delta * yaw_speed)
 	elif travel.length_squared() > 0.0001:
 		var target_yaw := atan2(-travel.x, -travel.z)
 		rotation.y = lerp_angle(rotation.y, target_yaw, delta * turn_speed)
@@ -306,15 +316,24 @@ func _update_player_attention(delta: float) -> void:
 			var move_vis: float = 0.0
 			if "movement_visibility" in _player:
 				move_vis = float(_player.get("movement_visibility"))
-			visual_rate = move_vis * dist_factor
+			# Baseline: existing in LOS is detectable even while still
+			visual_rate = (0.12 + move_vis) * dist_factor
 
 	# ── Combine and accumulate ───────────────────────────────────────
 	var total_rate := (signal_rate + noise_rate + visual_rate) * sensitivity
 	if total_rate > 0.01:
 		_player_attention = clamp(_player_attention + total_rate * delta, 0.0, 1.0)
 	else:
-		var decay := alert_decay * (0.6 + (1.0 - dist_factor))
+		# Decay is halved while pursuing — the drone stays suspicious
+		var decay_mult := 0.4 if _pursuing else 1.0
+		var decay := alert_decay * (0.6 + (1.0 - dist_factor)) * decay_mult
 		_player_attention = clamp(_player_attention - decay * delta, 0.0, 1.0)
+
+	# Update pursuit state with hysteresis to avoid rapid flickering
+	if _player_attention >= detection_threshold:
+		_pursuing = true
+	elif _player_attention < warning_threshold * 0.6:
+		_pursuing = false
 
 
 func _build_route_gizmo(route_root: Node3D) -> void:

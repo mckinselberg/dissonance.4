@@ -51,12 +51,16 @@ Key player inputs: **R** regulate (reduces sensory/signal load), **E** rest (onl
 Three parallel channels accumulate `_player_attention` each frame:
 1. **Signal** — `signal_visibility × dist_factor × coherence_shield` (no LOS required)
 2. **Noise** — `noise_stimulus × noise_dist_factor` (half range; spikes on footsteps and landing)
-3. **Visual** — LOS ray-cast + `movement_visibility` (only when player is moving and in sight)
+3. **Visual** — LOS ray-cast; `(0.12 + movement_visibility) × dist_factor` (0.12 baseline so a still player in LOS is detectable)
 
-Attention builds toward 1.0, decays faster when distant. Above `warning_threshold` (0.55) a shrieking synth sound begins, pulsing faster as attention climbs. At full detection the drone slows, turns toward the player, and the red light intensifies.
+Attention builds toward 1.0, decays slowly when no stimuli. Above `warning_threshold` (0.30) the shriek audio begins. At `detection_threshold` (0.60) the drone enters pursuit mode.
+
+**Pursuit mode**: drone abandons the patrol route and moves its route anchor directly toward the player overhead at `chase_speed`. Anchor bias jumps to 0.85, yaw turn rate doubles. Attention decays at half rate while pursuing (hysteresis: exits pursuit below `warning_threshold × 0.6`).
+
+Key tuning exports on `drone.gd`: `sensitivity` (2.5), `alert_decay` (0.06), `warning_threshold` (0.30), `detection_threshold` (0.60), `chase_speed` (9.0), `chase_height` (5.5).
 
 ### Burnout game-over
-When `burnout_risk ≥ 0.88` for 4 continuous seconds, `player_hud.gd` shows a "SIGNAL OVERLOAD" panel and calls `get_tree().reload_current_scene()` after 2.5s.
+`player_hud.gd` tracks `max(state.burnout_risk, drone_threat)` as pressure each frame. When pressure ≥ 0.65 for 3 continuous seconds, it shows a "SIGNAL OVERLOAD" panel and calls `get_tree().reload_current_scene()` after 2s. Drone threat is the primary driver — the state model chain alone is too slow to trigger this reliably. Tuning constants: `_BURNOUT_THRESHOLD = 0.65`, `_BURNOUT_TIME_TO_GAMEOVER = 3.0`.
 
 ### Zone layout
 | Zone | Type | Priority | Effect |
@@ -82,9 +86,10 @@ No imported audio assets anywhere in the project. All sound is synthesized in GD
 ## Tuning reference
 
 - **More oppressive:** lower streetlight energy and directional light energy, or use the "Night" preset in F1 HUD.
-- **Dusk sky warmth:** adjust `background_color`, `ambient_light_color`, and `fog_light_color` in `environments/night_env.tres`. Current palette is deep indigo-purple with mauve fog.
+- **Sky:** `background_color` in `environments/night_env.tres`. Currently dark grey `(0.055, 0.058, 0.068)` matching the foggy street atmosphere. Fog and ambient are cool blue-grey to stay consistent.
 - **Cleaner fog:** reduce `fog_density` and `volumetric_fog_density` in `environments/night_env.tres`.
 - **Less light spill:** lower `light_volumetric_fog_energy` on streetlights/drone; increase roughness on `materials/wet_ground.tres`.
-- **Drone sensitivity:** `sensitivity`, `alert_decay`, `warning_threshold`, `detection_threshold` are `@export` on `drone.gd`.
-- **Burnout timer:** `_BURNOUT_THRESHOLD` and `_BURNOUT_TIME_TO_GAMEOVER` constants in `player_hud.gd`.
+- **Drone sensitivity:** `sensitivity`, `alert_decay`, `warning_threshold`, `detection_threshold`, `chase_speed`, `chase_height` are `@export` on `drone.gd` — tunable in the Inspector without code changes.
+- **Burnout timer:** `_BURNOUT_THRESHOLD` (0.65) and `_BURNOUT_TIME_TO_GAMEOVER` (3.0) constants in `player_hud.gd`.
+- **Movement impairment:** scales quadratically with drone threat — `lerp(1.0, 0.5, threat²)` on speed, `lerp(1.0, 0.55, threat)` on mouse sensitivity. Stumble drift kicks in above 0.35 threat.
 - **Dev HUD:** press `F1` in-game; use the "Copy values" button to snapshot current slider state to clipboard.

@@ -34,6 +34,7 @@ var noise_stimulus: float = 0.0
 var movement_visibility: float = 0.0
 var _in_rest_zone: bool = false
 var _flashlight: SpotLight3D
+var _drone_threat: float = 0.0
 
 const _NOISE_DECAY: float = 4.0
 const _NOISE_WALK_STEP: float = 0.25
@@ -67,13 +68,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event.is_action_pressed("player_flashlight"):
-		_flashlight.visible = not _flashlight.visible
+		toggle_flashlight()
 		get_viewport().set_input_as_handled()
 		return
 
 	if event is InputEventMouseMotion:
-		_yaw -= event.relative.x * mouse_sensitivity
-		_pitch -= event.relative.y * mouse_sensitivity
+		var sens: float = mouse_sensitivity * lerp(1.0, 0.55, _drone_threat)
+		_yaw -= event.relative.x * sens
+		_pitch -= event.relative.y * sens
 		_pitch = clamp(_pitch, deg_to_rad(min_pitch_degrees), deg_to_rad(max_pitch_degrees))
 
 		rotation.y = _yaw
@@ -81,14 +83,23 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_drone_threat = _compute_drone_threat()
+
 	var input_vector := Input.get_vector("move_left", "move_right", "move_back", "move_forward")
 	var direction := (global_basis.x * input_vector.x) + (-global_basis.z * input_vector.y)
 	if direction.length_squared() > 0.0:
 		direction = direction.normalized()
 
 	var speed := sprint_speed if Input.is_action_pressed("move_sprint") else walk_speed
-	velocity.x = direction.x * speed
-	velocity.z = direction.z * speed
+	var threat_mult: float = lerp(1.0, 0.5, _drone_threat * _drone_threat)
+	velocity.x = direction.x * speed * threat_mult
+	velocity.z = direction.z * speed * threat_mult
+
+	# Stumble drift: at high threat the player's movements become erratic
+	if _drone_threat > 0.35:
+		var drift: float = (_drone_threat - 0.35) * (_drone_threat - 0.35) * 3.0
+		velocity.x += randf_range(-drift, drift)
+		velocity.z += randf_range(-drift, drift)
 
 	if not is_on_floor():
 		velocity.y -= _gravity * gravity_scale * delta
@@ -107,7 +118,7 @@ func _physics_process(delta: float) -> void:
 	_update_state_model(delta, speed)
 	noise_stimulus = move_toward(noise_stimulus, 0.0, _NOISE_DECAY * delta)
 	var is_moving := input_vector.length_squared() > 0.0 and is_on_floor()
-	movement_visibility = 0.4 if (is_moving and speed > walk_speed) else (0.12 if is_moving else 0.0)
+	movement_visibility = 0.55 if (is_moving and speed > walk_speed) else (0.22 if is_moving else 0.0)
 
 
 func _update_head_bob_and_footsteps(delta: float, input_vector: Vector2, speed: float) -> void:
@@ -156,12 +167,31 @@ func _setup_flashlight() -> void:
 	_flashlight.spot_angle_attenuation = 0.6
 	_flashlight.light_volumetric_fog_energy = 0.6
 	_flashlight.shadow_enabled = true
+	_flashlight.name = "Flashlight"
 	_flashlight.visible = false
 	head.add_child(_flashlight)
 
 
+func toggle_flashlight() -> void:
+	_flashlight.visible = not _flashlight.visible
+
+
 func get_signal_visibility() -> float:
 	return state.signal_visibility
+
+
+func _compute_drone_threat() -> float:
+	var drones := get_tree().get_nodes_in_group("drones")
+	var max_threat := 0.0
+	for drone in drones:
+		if not drone.has_method("get_alert_level"):
+			continue
+		var alert: float = drone.call("get_alert_level")
+		var dist: float = global_position.distance_to(drone.global_position)
+		var range: float = float(drone.get("detection_range"))
+		var dist_factor: float = clamp(1.0 - dist / (range * 1.5), 0.0, 1.0)
+		max_threat = max(max_threat, alert * (0.5 + dist_factor * 0.5))
+	return clamp(max_threat, 0.0, 1.0)
 
 
 func register_zone(zone: ZoneArea3D) -> void:
@@ -197,11 +227,19 @@ func _update_state_model(delta: float, speed: float) -> void:
 		if float(zone.get("rest_input")) > 0.0:
 			_in_rest_zone = true
 
+	# Regulate drains energy — mental effort of self-regulation
+	var base_task := 0.5 if is_sprinting else 0.14
+	var task := base_task + (0.65 if regulating else 0.0)
+
+	# Drone detection feeds directly into stress — being chased is inherently destabilizing
+	var threat_sensory := _drone_threat * 0.9
+	var threat_social := _drone_threat * 0.5
+
 	state.update_state(
 		delta,
-		0.5 if is_sprinting else 0.14,
-		z_social,
-		z_sensory,
+		task,
+		z_social + threat_social,
+		z_sensory + threat_sensory,
 		z_rest if (resting and _in_rest_zone) else 0.0,
 		(0.82 + z_musical) if regulating else z_musical,
 		0.15 if (is_moving and not is_sprinting) else 0.0,

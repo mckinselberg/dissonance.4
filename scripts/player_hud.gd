@@ -7,13 +7,14 @@ var _zone_label: Label
 var _state_zone_label: Label
 var _hint_label: Label
 var _collect_label: Label
+var _flashlight_btn: Button
 var _completion_panel: Control
 var _gameover_panel: Control
 var _overlay: ColorRect
 
 const _OVERLAY_COLOR := Color(0.62, 0.02, 0.48)
-const _BURNOUT_THRESHOLD := 0.88
-const _BURNOUT_TIME_TO_GAMEOVER := 4.0
+const _BURNOUT_THRESHOLD := 0.65
+const _BURNOUT_TIME_TO_GAMEOVER := 3.0
 
 var _burnout_exposure_time: float = 0.0
 var _burnout_triggered: bool = false
@@ -54,6 +55,7 @@ func _process(delta: float) -> void:
 	_update_bars(state)
 	_update_labels(state)
 	_update_threat_fx(delta)
+	_update_flashlight_btn()
 	if not _burnout_triggered:
 		_update_burnout_timer(state, delta)
 
@@ -76,8 +78,28 @@ func _update_threat_fx(delta: float) -> void:
 			_camera.v_offset = lerp(_camera.v_offset, 0.0, delta * 10.0)
 
 
+func _update_flashlight_btn() -> void:
+	if _player == null or _flashlight_btn == null:
+		return
+	var fl := _player.get_node_or_null("Head/Flashlight")
+	if fl == null:
+		return
+	var on: bool = fl.visible
+	_flashlight_btn.text = ("◉  light  [F]" if on else "○  light  [F]")
+	var col := Color(0.95, 0.92, 0.6) if on else Color(0.55, 0.55, 0.45)
+	_flashlight_btn.add_theme_color_override("font_color", col)
+
+
+func _on_flashlight_btn_pressed() -> void:
+	if _player != null and _player.has_method("toggle_flashlight"):
+		_player.call("toggle_flashlight")
+
+
 func _update_burnout_timer(state: StateModel, delta: float) -> void:
-	if state.burnout_risk >= _BURNOUT_THRESHOLD:
+	# Drone threat is the primary pressure — don't wait for full state model chain
+	var drone_threat := _compute_drone_threat()
+	var pressure: float = max(state.burnout_risk, drone_threat)
+	if pressure >= _BURNOUT_THRESHOLD:
 		_burnout_exposure_time += delta
 		if _burnout_exposure_time >= _BURNOUT_TIME_TO_GAMEOVER:
 			_trigger_burnout_gameover()
@@ -125,7 +147,7 @@ func _build_ui() -> void:
 	panel.offset_left = -220.0
 	panel.offset_top = 16.0
 	panel.offset_right = -16.0
-	panel.offset_bottom = 320.0
+	panel.offset_bottom = 362.0
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.04, 0.04, 0.05, 0.72)
@@ -182,6 +204,19 @@ func _build_ui() -> void:
 	_collect_label = _make_label("♪  — / —", Color(0.85, 0.78, 0.35))
 	_collect_label.add_theme_font_size_override("font_size", 11)
 	vbox.add_child(_collect_label)
+
+	var sep5 := HSeparator.new()
+	vbox.add_child(sep5)
+
+	_flashlight_btn = Button.new()
+	_flashlight_btn.text = "○  light  [F]"
+	_flashlight_btn.flat = true
+	_flashlight_btn.add_theme_font_size_override("font_size", 10)
+	_flashlight_btn.add_theme_color_override("font_color", Color(0.55, 0.55, 0.45))
+	_flashlight_btn.add_theme_color_override("font_hover_color", Color(0.85, 0.82, 0.6))
+	_flashlight_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_flashlight_btn.pressed.connect(_on_flashlight_btn_pressed)
+	vbox.add_child(_flashlight_btn)
 
 	# Completion panel — centered, hidden until all collected
 	_completion_panel = _build_completion_panel()
