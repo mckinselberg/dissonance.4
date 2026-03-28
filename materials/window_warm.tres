@@ -1,9 +1,8 @@
-[gd_resource type="StandardMaterial3D" format=3]
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cnscbvmek5vs3"]
 
 [resource]
-emission_enabled = true
-emission = Color(1.0, 0.72, 0.42, 1)
-emission_energy_multiplier = 1.25
 albedo_color = Color(0.16, 0.13, 0.08, 1)
-metallic = 0.0
 roughness = 0.22
+emission_enabled = true
+emission = Color(1, 0.72, 0.42, 1)
+emission_energy_multiplier = 1.25

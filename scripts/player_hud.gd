@@ -127,8 +127,8 @@ func _compute_drone_threat() -> float:
 			continue
 		var alert: float = drone.call("get_alert_level")
 		var dist: float = player_pos.distance_to(drone.global_position)
-		var range: float = float(drone.get("detection_range"))
-		var dist_factor: float = clamp(1.0 - dist / (range * 1.5), 0.0, 1.0)
+		var detection_range: float = float(drone.get("detection_range"))
+		var dist_factor: float = clamp(1.0 - dist / (detection_range * 1.5), 0.0, 1.0)
 		max_threat = max(max_threat, alert * (0.5 + dist_factor * 0.5))
 	return clamp(max_threat, 0.0, 1.0)
 

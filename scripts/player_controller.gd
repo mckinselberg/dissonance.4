@@ -1,14 +1,15 @@
 extends CharacterBody3D
 
-@export var walk_speed: float = 4.8
-@export var sprint_speed: float = 7.8
+@export var walk_speed: float = 2.4
+@export var sprint_speed: float = 4.8
 @export var jump_velocity: float = 4.5
 @export var mouse_sensitivity: float = 0.0025
 @export var gravity_scale: float = 1.0
+@export var camera_fov: float = 65.0
 @export var bob_frequency: float = 1.7
 @export var bob_amplitude: float = 0.05
-@export var footstep_interval_walk: float = 0.58
-@export var footstep_interval_sprint: float = 0.36
+@export var footstep_interval_walk: float = 1.0
+@export var footstep_interval_sprint: float = 0.62
 @export var footstep_volume_db: float = -18.0
 @export var footstep_duration: float = 0.12
 @export_range(-89.0, 89.0, 0.1) var min_pitch_degrees: float = -80.0
@@ -53,6 +54,7 @@ func _ready() -> void:
 	state = StateModel.new()
 	_setup_flashlight()
 	_ensure_action("player_flashlight", KEY_F)
+	camera.fov = camera_fov
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -188,8 +190,8 @@ func _compute_drone_threat() -> float:
 			continue
 		var alert: float = drone.call("get_alert_level")
 		var dist: float = global_position.distance_to(drone.global_position)
-		var range: float = float(drone.get("detection_range"))
-		var dist_factor: float = clamp(1.0 - dist / (range * 1.5), 0.0, 1.0)
+		var detection_range: float = float(drone.get("detection_range"))
+		var dist_factor: float = clamp(1.0 - dist / (detection_range * 1.5), 0.0, 1.0)
 		max_threat = max(max_threat, alert * (0.5 + dist_factor * 0.5))
 	return clamp(max_threat, 0.0, 1.0)
 

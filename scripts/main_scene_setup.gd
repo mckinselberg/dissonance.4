@@ -1,9 +1,12 @@
 extends Node3D
 
-const SceneProps := preload("res://scripts/scene_props.gd")
-const ZonesSetup := preload("res://scripts/zones_setup.gd")
-const PlayerHud := preload("res://scripts/player_hud.gd")
+const SceneProps        := preload("res://scripts/scene_props.gd")
+const ZonesSetup        := preload("res://scripts/zones_setup.gd")
+const PlayerHud         := preload("res://scripts/player_hud.gd")
 const CollectiblesSetup := preload("res://scripts/collectibles_setup.gd")
+const BuildingInterior  := preload("res://scripts/building_interior.gd")
+const MistSetup         := preload("res://scripts/mist_setup.gd")
+const WorldExtension    := preload("res://scripts/world_extension.gd")
 
 @onready var drone: Node3D = $Drone
 @onready var drone_route: Node3D = $DroneRoute
@@ -32,6 +35,18 @@ func _ready() -> void:
 		var lamp_light: OmniLight3D = child.get_node_or_null("LampLight")
 		if lamp_light:
 			lamp_light.light_energy *= energy_scale
+
+	var building_spawner := BuildingInterior.new()
+	add_child(building_spawner)
+	building_spawner.setup(self)
+
+	var mist_spawner := MistSetup.new()
+	add_child(mist_spawner)
+	mist_spawner.setup(self)
+
+	var world_ext := WorldExtension.new()
+	add_child(world_ext)
+	world_ext.setup(self)
 
 	var props_spawner := SceneProps.new()
 	add_child(props_spawner)
