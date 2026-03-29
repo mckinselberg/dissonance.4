@@ -229,7 +229,7 @@ func _build_ui() -> void:
 	add_child(_gameover_panel)
 
 
-func _add_bar(parent: VBoxContainer, key: String, label_text: String, color: Color, scale: int = 1) -> void:
+func _add_bar(parent: VBoxContainer, key: String, label_text: String, color: Color, width_scale: int = 1) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	parent.add_child(row)
@@ -247,7 +247,7 @@ func _add_bar(parent: VBoxContainer, key: String, label_text: String, color: Col
 	bar.value = 0.0
 	bar.show_percentage = false
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bar.custom_minimum_size = Vector2(0.0, 6.0 * scale)
+	bar.custom_minimum_size = Vector2(0.0, 6.0 * width_scale)
 
 	var fill_style := StyleBoxFlat.new()
 	fill_style.bg_color = color

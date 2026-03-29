@@ -267,13 +267,13 @@ func _apply_streetlight_multiplier(multiplier: float) -> void:
 			lamp.light_volumetric_fog_energy = _streetlight_base_volumetric[lamp] * multiplier
 
 
-func _get_fog_density(name: String) -> float:
-	var fog_material: FogMaterial = _fog_materials.get(name)
+func _get_fog_density(fog_key: String) -> float:
+	var fog_material: FogMaterial = _fog_materials.get(fog_key)
 	return fog_material.density if fog_material else 0.0
 
 
-func _set_fog_density(name: String, value: float) -> void:
-	var fog_material: FogMaterial = _fog_materials.get(name)
+func _set_fog_density(fog_key: String, value: float) -> void:
+	var fog_material: FogMaterial = _fog_materials.get(fog_key)
 	if fog_material:
 		fog_material.density = value
 

@@ -1,11 +1,17 @@
-extends Node
+@tool
+extends Node3D
 
 
-func setup(root: Node3D) -> void:
+func _ready() -> void:
+	if get_child_count() > 0:
+		return
+	call_deferred("_do_spawn")
+
+
+func _do_spawn() -> void:
 	# Pull back the existing flat mist sheets so they read as background haze.
-	# GPUParticles3D is Node3D — use process_material color alpha, not modulate.
 	for node_name in ["MistParticles_A", "MistParticles_B"]:
-		var existing := root.get_node_or_null(node_name) as GPUParticles3D
+		var existing := get_parent().get_node_or_null(node_name) as GPUParticles3D
 		if existing == null:
 			continue
 		var pm := existing.process_material as ParticleProcessMaterial
@@ -17,16 +23,14 @@ func setup(root: Node3D) -> void:
 
 	# Ground tendril layer — low wisps crawling at foot level
 	for z: float in [-20.0, -60.0, -100.0]:
-		_spawn_ground_tendril(root, z)
+		_spawn_ground_tendril(z)
 
 	# Mid haze layer — barely visible volume above head height
 	for z: float in [-35.0, -90.0]:
-		_spawn_mid_haze(root, z)
-
-	queue_free()
+		_spawn_mid_haze(z)
 
 
-func _spawn_ground_tendril(root: Node3D, z: float) -> void:
+func _spawn_ground_tendril(z: float) -> void:
 	var particles := GPUParticles3D.new()
 	particles.position = Vector3(0.0, 0.3, z)
 	particles.amount = 140
@@ -58,10 +62,8 @@ func _spawn_ground_tendril(root: Node3D, z: float) -> void:
 
 	var gradient := Gradient.new()
 	gradient.colors = PackedColorArray([
-		Color(1, 1, 1, 0.0),
-		Color(1, 1, 1, 1.0),
-		Color(1, 1, 1, 1.0),
-		Color(1, 1, 1, 0.0),
+		Color(1, 1, 1, 0.0), Color(1, 1, 1, 1.0),
+		Color(1, 1, 1, 1.0), Color(1, 1, 1, 0.0),
 	])
 	gradient.offsets = PackedFloat32Array([0.0, 0.1, 0.85, 1.0])
 	var ramp_tex := GradientTexture1D.new()
@@ -69,10 +71,10 @@ func _spawn_ground_tendril(root: Node3D, z: float) -> void:
 	proc_mat.color_ramp = ramp_tex
 
 	particles.process_material = proc_mat
-	root.add_child(particles)
+	add_child(particles)
 
 
-func _spawn_mid_haze(root: Node3D, z: float) -> void:
+func _spawn_mid_haze(z: float) -> void:
 	var particles := GPUParticles3D.new()
 	particles.position = Vector3(0.0, 3.5, z)
 	particles.amount = 40
@@ -100,10 +102,8 @@ func _spawn_mid_haze(root: Node3D, z: float) -> void:
 
 	var gradient := Gradient.new()
 	gradient.colors = PackedColorArray([
-		Color(1, 1, 1, 0.0),
-		Color(1, 1, 1, 1.0),
-		Color(1, 1, 1, 1.0),
-		Color(1, 1, 1, 0.0),
+		Color(1, 1, 1, 0.0), Color(1, 1, 1, 1.0),
+		Color(1, 1, 1, 1.0), Color(1, 1, 1, 0.0),
 	])
 	gradient.offsets = PackedFloat32Array([0.0, 0.15, 0.80, 1.0])
 	var ramp_tex := GradientTexture1D.new()
@@ -111,4 +111,4 @@ func _spawn_mid_haze(root: Node3D, z: float) -> void:
 	proc_mat.color_ramp = ramp_tex
 
 	particles.process_material = proc_mat
-	root.add_child(particles)
+	add_child(particles)

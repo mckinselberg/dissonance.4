@@ -235,9 +235,9 @@ func set_player(player: Node3D) -> void:
 	_player = player
 
 
-func set_route_gizmo_visible(is_visible: bool) -> void:
+func set_route_gizmo_visible(visible_state: bool) -> void:
 	if _route_gizmo:
-		_route_gizmo.visible = is_visible
+		_route_gizmo.visible = visible_state
 
 
 func _update_route_position(delta: float) -> void:
