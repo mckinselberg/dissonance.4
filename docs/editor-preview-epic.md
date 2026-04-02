@@ -141,6 +141,21 @@ Acceptance criteria:
 6. Remove or reduce startup-only visual overrides
 7. Add a short onboarding note with expected scene tree layout
 
+## Progress Notes
+
+Implemented so far:
+
+- `SceneProps`, `Zones`, and `Collectibles` editor-preview builders exist and are visible in `main.tscn`
+- `ZoneArea3D` now renders editor-only preview bounds and labels
+- `Zones` now provide an in-editor color legend
+- `Collectibles` now provide an in-editor route guide and legend
+- `player_hud.tscn` now owns the HUD structure instead of building the entire interface procedurally at runtime
+- `main_scene_setup.gd` no longer force-overrides fog and directional-light defaults during startup
+
+Recommended next step:
+
+- move `main.tscn` closer to the target top-level ownership layout: `World`, `Gameplay`, `SceneProps`, `Zones`, `Collectibles`, `UI`, and `Debug`
+
 ## Godot 4.6 Implementation Notes
 
 - Use `@tool` only where editor rebuild behavior is intentional and predictable.
