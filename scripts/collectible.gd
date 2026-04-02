@@ -2,10 +2,12 @@
 class_name MusicalCollectible
 extends Area3D
 
-var symbol: String = "♪"
+var symbol: String = "\u266A"
 var collection_manager: CollectionManager = null
 
 var _label: Label3D
+var _editor_label: Label3D
+var _editor_aura: MeshInstance3D
 var _time: float = 0.0
 var _collected: bool = false
 
@@ -33,6 +35,7 @@ func _ready() -> void:
 		add_child(col)
 
 	if Engine.is_editor_hint():
+		_update_editor_preview()
 		set_process(false)
 		return
 
@@ -57,6 +60,47 @@ func _on_body_entered(body: Node) -> void:
 	queue_free()
 
 
+func _update_editor_preview() -> void:
+	_editor_aura = get_node_or_null("EditorAura") as MeshInstance3D
+	if _editor_aura == null:
+		_editor_aura = MeshInstance3D.new()
+		_editor_aura.name = "EditorAura"
+		add_child(_editor_aura)
+
+	var aura_mesh := CylinderMesh.new()
+	aura_mesh.top_radius = 0.42
+	aura_mesh.bottom_radius = 0.42
+	aura_mesh.height = 0.04
+	aura_mesh.radial_segments = 24
+	_editor_aura.mesh = aura_mesh
+	_editor_aura.position = Vector3(0.0, -0.55, 0.0)
+	_editor_aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	var aura_material := StandardMaterial3D.new()
+	aura_material.albedo_color = Color(1.0, 0.88, 0.3, 0.32)
+	aura_material.emission_enabled = true
+	aura_material.emission = Color(1.0, 0.88, 0.3)
+	aura_material.emission_energy_multiplier = 0.35
+	aura_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	aura_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	aura_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_editor_aura.material_override = aura_material
+
+	_editor_label = get_node_or_null("EditorLabel") as Label3D
+	if _editor_label == null:
+		_editor_label = Label3D.new()
+		_editor_label.name = "EditorLabel"
+		_editor_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_editor_label.font_size = 28
+		_editor_label.outline_size = 5
+		_editor_label.pixel_size = 0.005
+		add_child(_editor_label)
+
+	_editor_label.text = name
+	_editor_label.position = Vector3(0.0, 0.45, 0.0)
+	_editor_label.modulate = Color(0.95, 0.92, 0.65)
+
+
 func _play_collect_sound() -> void:
 	var player := AudioStreamPlayer.new()
 	var gen := AudioStreamGenerator.new()
@@ -71,7 +115,6 @@ func _play_collect_sound() -> void:
 		player.queue_free()
 		return
 
-	# Ascending C major triad arpeggio: C5 → E5 → G5
 	var notes := [523.25, 659.25, 783.99]
 	var durations := [0.07, 0.07, 0.12]
 	for n in range(notes.size()):
