@@ -16,10 +16,11 @@ The slice must prove:
 - the state model meaningfully shapes play
 - the atmosphere is commercially compelling
 - the current workflow can scale into production
+- the setting reads specifically as Dissonance rather than generic surveillance fiction
 
 ## Player Promise
 
-The player enters a hostile, surveilled boulevard, learns how exposure and regulation interact, avoids or manipulates drone pressure, recovers in protected spaces, and reaches a memorable endpoint.
+The player enters a hostile Synod-controlled boulevard, learns how exposure, behavioral irregularity, and regulation interact, avoids or manipulates drone pressure, discovers cracks in the control system, and reaches a memorable endpoint.
 
 ## Required Content In The Slice
 
@@ -40,6 +41,7 @@ The slice must include:
 - warning and pursuit readability
 - meaningful choices around movement, sound, and exposure
 - recoverable failure pressure
+- a sense that systems are profiling anomaly, not only seeing the player
 
 ### 3. State Loop
 
@@ -48,6 +50,7 @@ The slice must include:
 - readable HUD feedback
 - spaces that calm, restore, or regulate
 - moments where the player understands why state matters
+- pressure from surveillance proximity or unsafe acoustic conditions
 
 ### 4. Progression Hook
 
@@ -57,6 +60,12 @@ The slice must include one simple but meaningful short-term objective, such as:
 - reach a protected destination
 - unlock a route or reveal after enough successful traversal
 
+A strong preferred option for the current project is:
+
+- disable or bring down a drone
+- salvage its parts
+- build or unlock an anti-detection audio jammer from Synod hardware
+
 ### 5. Atmosphere Hook
 
 The slice must produce strong trailer and screenshot moments:
@@ -65,6 +74,7 @@ The slice must produce strong trailer and screenshot moments:
 - first drone pressure beat
 - one refuge contrast beat
 - one dramatic terminus or reveal beat
+- one clear environmental clue that suppressed sound or culture still exists under Synod control
 
 ## Required Production Quality For The Slice
 
@@ -82,6 +92,7 @@ The slice must produce strong trailer and screenshot moments:
 - player feedback is readable
 - stealth consequences are fair
 - pacing includes tension and relief
+- world fiction and mechanics reinforce each other
 
 ### Presentation
 
@@ -100,6 +111,7 @@ The vertical slice is done when all of the following are true:
 - regulation and rest feel necessary and useful
 - the build is stable enough for external playtesting
 - the team can capture marketable footage from the slice
+- players can describe at least one way the world’s control systems shape the mechanics
 
 ## Metrics To Watch
 
@@ -109,6 +121,7 @@ Qualitative:
 - do players understand how to recover
 - do players describe the game as distinctive
 - do players want to continue after the slice ends
+- do players notice the connection between surveillance machinery and player tool progression
 
 Quantitative:
 
@@ -128,6 +141,7 @@ The slice backlog should be grouped into these workstreams:
 - world building and landmarks
 - HUD and UX
 - procedural audio tuning
+- world integration and environmental storytelling
 - settings and accessibility
 - QA and playtest instrumentation
 
@@ -140,6 +154,7 @@ The slice does not need:
 - broad narrative branching
 - final content volume
 - console-ready certification work
+- a full crafting or instrument-composition system
 
 ## Exit Criteria
 
@@ -150,3 +165,5 @@ Once the slice succeeds, the project can safely enter production scaling:
 - add encounter variation
 - add stronger narrative framing
 - prepare a public demo and store-facing assets
+
+Longer-term progression may include found parts, forbidden symbols, and fragments of suppressed audio knowledge contributing to tools, instruments, and expressive resistance systems, but that should be treated as a future design track rather than fully specified vertical-slice scope.
