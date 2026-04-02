@@ -3,4 +3,231 @@
 [ext_resource type="Script" path="res://scripts/player_hud.gd" id="1_player_hud_script"]
 
 [node name="PlayerHUD" type="CanvasLayer"]
+layer = 5
 script = ExtResource("1_player_hud_script")
+
+[node name="Overlay" type="ColorRect" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.62, 0.02, 0.48, 0)
+
+[node name="StatusPanel" type="PanelContainer" parent="."]
+offset_left = -220.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 362.0
+anchor_left = 1.0
+anchor_right = 1.0
+
+[node name="Margin" type="MarginContainer" parent="StatusPanel"]
+offset_right = 204.0
+offset_bottom = 346.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="StatusPanel/Margin"]
+offset_right = 184.0
+offset_bottom = 326.0
+theme_override_constants/separation = 5
+
+[node name="ZoneLabel" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "-"
+
+[node name="StateZoneLabel" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "neutral"
+
+[node name="TopSeparator" type="HSeparator" parent="StatusPanel/Margin/VBox"]
+
+[node name="SignalRow" type="HBoxContainer" parent="StatusPanel/Margin/VBox"]
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="StatusPanel/Margin/VBox/SignalRow"]
+custom_minimum_size = Vector2(88, 0)
+text = "Signal"
+
+[node name="SignalBar" type="ProgressBar" parent="StatusPanel/Margin/VBox/SignalRow"]
+custom_minimum_size = Vector2(0, 12)
+size_flags_horizontal = 3
+max_value = 1.0
+show_percentage = false
+
+[node name="CoherenceRow" type="HBoxContainer" parent="StatusPanel/Margin/VBox"]
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="StatusPanel/Margin/VBox/CoherenceRow"]
+custom_minimum_size = Vector2(88, 0)
+text = "Coherence"
+
+[node name="CoherenceBar" type="ProgressBar" parent="StatusPanel/Margin/VBox/CoherenceRow"]
+custom_minimum_size = Vector2(0, 6)
+size_flags_horizontal = 3
+max_value = 1.0
+show_percentage = false
+
+[node name="MiddleSeparator" type="HSeparator" parent="StatusPanel/Margin/VBox"]
+
+[node name="FocusRow" type="HBoxContainer" parent="StatusPanel/Margin/VBox"]
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="StatusPanel/Margin/VBox/FocusRow"]
+custom_minimum_size = Vector2(88, 0)
+text = "Focus"
+
+[node name="FocusBar" type="ProgressBar" parent="StatusPanel/Margin/VBox/FocusRow"]
+custom_minimum_size = Vector2(0, 6)
+size_flags_horizontal = 3
+max_value = 1.0
+show_percentage = false
+
+[node name="EnergyRow" type="HBoxContainer" parent="StatusPanel/Margin/VBox"]
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="StatusPanel/Margin/VBox/EnergyRow"]
+custom_minimum_size = Vector2(88, 0)
+text = "Energy"
+
+[node name="EnergyBar" type="ProgressBar" parent="StatusPanel/Margin/VBox/EnergyRow"]
+custom_minimum_size = Vector2(0, 6)
+size_flags_horizontal = 3
+max_value = 1.0
+show_percentage = false
+
+[node name="MoodRow" type="HBoxContainer" parent="StatusPanel/Margin/VBox"]
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="StatusPanel/Margin/VBox/MoodRow"]
+custom_minimum_size = Vector2(88, 0)
+text = "Mood"
+
+[node name="MoodBar" type="ProgressBar" parent="StatusPanel/Margin/VBox/MoodRow"]
+custom_minimum_size = Vector2(0, 6)
+size_flags_horizontal = 3
+max_value = 1.0
+show_percentage = false
+
+[node name="SocialRow" type="HBoxContainer" parent="StatusPanel/Margin/VBox"]
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="StatusPanel/Margin/VBox/SocialRow"]
+custom_minimum_size = Vector2(88, 0)
+text = "Social Load"
+
+[node name="SocialBar" type="ProgressBar" parent="StatusPanel/Margin/VBox/SocialRow"]
+custom_minimum_size = Vector2(0, 6)
+size_flags_horizontal = 3
+max_value = 1.0
+show_percentage = false
+
+[node name="SensoryRow" type="HBoxContainer" parent="StatusPanel/Margin/VBox"]
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="StatusPanel/Margin/VBox/SensoryRow"]
+custom_minimum_size = Vector2(88, 0)
+text = "Sensory Load"
+
+[node name="SensoryBar" type="ProgressBar" parent="StatusPanel/Margin/VBox/SensoryRow"]
+custom_minimum_size = Vector2(0, 6)
+size_flags_horizontal = 3
+max_value = 1.0
+show_percentage = false
+
+[node name="BurnoutRow" type="HBoxContainer" parent="StatusPanel/Margin/VBox"]
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="StatusPanel/Margin/VBox/BurnoutRow"]
+custom_minimum_size = Vector2(88, 0)
+text = "Burnout Risk"
+
+[node name="BurnoutBar" type="ProgressBar" parent="StatusPanel/Margin/VBox/BurnoutRow"]
+custom_minimum_size = Vector2(0, 6)
+size_flags_horizontal = 3
+max_value = 1.0
+show_percentage = false
+
+[node name="HintSeparator" type="HSeparator" parent="StatusPanel/Margin/VBox"]
+
+[node name="HintLabel" type="Label" parent="StatusPanel/Margin/VBox"]
+text = ""
+
+[node name="CollectSeparator" type="HSeparator" parent="StatusPanel/Margin/VBox"]
+
+[node name="CollectLabel" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "Signal - / -"
+
+[node name="ButtonSeparator" type="HSeparator" parent="StatusPanel/Margin/VBox"]
+
+[node name="FlashlightButton" type="Button" parent="StatusPanel/Margin/VBox"]
+text = "Light [F]"
+flat = true
+alignment = 0
+
+[node name="CompletionPanel" type="PanelContainer" parent="."]
+visible = false
+offset_left = -240.0
+offset_top = -80.0
+offset_right = 240.0
+offset_bottom = 80.0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+
+[node name="Margin" type="MarginContainer" parent="CompletionPanel"]
+offset_right = 480.0
+offset_bottom = 160.0
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="CompletionPanel/Margin"]
+offset_right = 432.0
+offset_bottom = 124.0
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="CompletionPanel/Margin/VBox"]
+text = "All signals recovered"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CompletionPanel/Margin/VBox"]
+text = "The signal harmonizes."
+horizontal_alignment = 1
+
+[node name="GameOverPanel" type="PanelContainer" parent="."]
+visible = false
+offset_left = -280.0
+offset_top = -100.0
+offset_right = 280.0
+offset_bottom = 100.0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+
+[node name="Margin" type="MarginContainer" parent="GameOverPanel"]
+offset_right = 560.0
+offset_bottom = 200.0
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="GameOverPanel/Margin"]
+offset_right = 504.0
+offset_bottom = 156.0
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="GameOverPanel/Margin/VBox"]
+text = "SIGNAL OVERLOAD"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="GameOverPanel/Margin/VBox"]
+text = "The signal consumes you.\nRestarting..."
+horizontal_alignment = 1

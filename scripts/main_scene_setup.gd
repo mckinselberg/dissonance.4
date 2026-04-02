@@ -25,7 +25,7 @@ func _ready() -> void:
 	if drone.has_method("set_route_gizmo_visible"):
 		drone.call("set_route_gizmo_visible", true)
 
-	_apply_scene_defaults()
+	_apply_scene_runtime_adjustments()
 
 	for mist in [mist_a, mist_b]:
 		if mist.has_method("set_phase_offset"):
@@ -60,16 +60,7 @@ func _ready() -> void:
 		hud.setup_collection(collection_mgr)
 
 
-func _apply_scene_defaults() -> void:
-	var dir_light := get_node_or_null("DirectionalLight3D") as DirectionalLight3D
-	if dir_light:
-		dir_light.light_energy = 0.550
-		dir_light.light_volumetric_fog_energy = 0.280
-
-	_set_fog_density("FogVolumes/GroundFog_A", 0.160)
-	_set_fog_density("FogVolumes/GroundFog_B", 0.090)
-	_set_fog_density("FogVolumes/MidFog_A", 0.020)
-
+func _apply_scene_runtime_adjustments() -> void:
 	# Remove original rear wall at Z=-128.5 so the extended boulevard is reachable.
 	# boulevard_terminus.gd places a new wall at Z=-345.
 	var rear_mesh := get_node_or_null("LevelBounds/RearWall")
@@ -78,15 +69,6 @@ func _apply_scene_defaults() -> void:
 	var rear_body := get_node_or_null("LevelBounds/RearWall_Body")
 	if rear_body:
 		rear_body.queue_free()
-
-
-func _set_fog_density(path: String, density: float) -> void:
-	var vol := get_node_or_null(path) as FogVolume
-	if vol == null:
-		return
-	var mat := vol.material as FogMaterial
-	if mat:
-		mat.density = density
 
 
 func _resolve_collection_manager() -> CollectionManager:
