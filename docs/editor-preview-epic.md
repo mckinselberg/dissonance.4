@@ -151,6 +151,7 @@ Implemented so far:
 - `Collectibles` now provide an in-editor route guide and legend
 - `player_hud.tscn` now owns the HUD structure instead of building the entire interface procedurally at runtime
 - `main_scene_setup.gd` no longer force-overrides fog and directional-light defaults during startup
+- `main.tscn` now has initial `World`, `Gameplay`, `UI`, and `Debug` wrapper roots, with `SceneProps`, `Zones`, `Collectibles`, and `DevHUD` migrated into lower-risk buckets first
 
 Recommended next step:
 

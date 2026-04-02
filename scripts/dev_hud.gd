@@ -61,18 +61,20 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _bind_scene() -> void:
 	var root := get_parent()
+	if root != null and root.name == "Debug":
+		root = root.get_parent()
 	if root == null:
 		return
 
-	var world_environment: WorldEnvironment = root.get_node_or_null("WorldEnvironment")
-	_directional_light = root.get_node_or_null("DirectionalLight3D")
-	_street_lights = root.get_node_or_null("StreetLights")
-	_drone = root.get_node_or_null("Drone")
+	var world_environment: WorldEnvironment = _find_node(root, "WorldEnvironment", "World/WorldEnvironment") as WorldEnvironment
+	_directional_light = _find_node(root, "DirectionalLight3D", "World/DirectionalLight3D") as DirectionalLight3D
+	_street_lights = _find_node(root, "StreetLights", "World/StreetLights") as Node3D
+	_drone = _find_node(root, "Drone", "Gameplay/Drone") as Node3D
 
 	if world_environment:
 		_environment = world_environment.environment
 
-	var fog_group: Node3D = root.get_node_or_null("FogVolumes")
+	var fog_group: Node3D = _find_node(root, "FogVolumes", "World/FogVolumes") as Node3D
 	if fog_group:
 		for fog_volume in fog_group.get_children():
 			if fog_volume is FogVolume and fog_volume.material is FogMaterial:
@@ -366,7 +368,10 @@ func _on_route_gizmo_toggled(button_pressed: bool) -> void:
 func _is_route_gizmo_visible() -> bool:
 	if _drone == null:
 		return false
-	var route_root := get_parent().get_node_or_null("DroneRoute")
+	var root := get_parent()
+	if root != null and root.name == "Debug":
+		root = root.get_parent()
+	var route_root := _find_node(root, "DroneRoute", "Gameplay/DroneRoute") if root else null
 	var gizmo := route_root.get_node_or_null("RouteGizmo") if route_root else null
 	return gizmo.visible if gizmo else false
 
@@ -398,3 +403,10 @@ func _apply_preset(preset: Dictionary) -> void:
 		if _rows.has(key):
 			_rows[key]["slider"].value = preset[key]
 	_refresh_dump_text()
+
+
+func _find_node(root: Node, direct_path: String, nested_path: String) -> Node:
+	var node := root.get_node_or_null(direct_path)
+	if node != null:
+		return node
+	return root.get_node_or_null(nested_path)

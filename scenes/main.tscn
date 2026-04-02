@@ -19,9 +19,9 @@
 [ext_resource type="Script" uid="uid://w5tvex2ily55" path="res://scripts/mist_setup.gd" id="17_mist_setup_script"]
 [ext_resource type="Script" uid="uid://c2ru21joujsa3" path="res://scripts/world_extension.gd" id="18_world_ext_script"]
 [ext_resource type="Script" uid="uid://db4xc0337y7cs" path="res://scripts/boulevard_terminus.gd" id="19_terminus_script"]
-[ext_resource type="Script" path="res://scripts/scene_props_builder.gd" id="20_scene_props_builder"]
-[ext_resource type="Script" path="res://scripts/zones_builder.gd" id="21_zones_builder"]
-[ext_resource type="Script" path="res://scripts/collectibles_builder.gd" id="22_collectibles_builder"]
+[ext_resource type="Script" uid="uid://dhsfr6ul07iue" path="res://scripts/scene_props_builder.gd" id="20_scene_props_builder"]
+[ext_resource type="Script" uid="uid://bbkavq11pkyx0" path="res://scripts/zones_builder.gd" id="21_zones_builder"]
+[ext_resource type="Script" uid="uid://bhd6dv2dkl1au" path="res://scripts/collectibles_builder.gd" id="22_collectibles_builder"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.35
@@ -140,7 +140,7 @@ albedo = Color(0.26, 0.27, 0.28, 1)
 height_falloff = 0.1
 edge_fade = 0.4
 
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_0ld40"]
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_jscy8"]
 direction = Vector3(0.9, 0.02, 0.4)
 spread = 32.0
 initial_velocity_min = 0.1
@@ -158,7 +158,7 @@ color = Color(1, 1, 1, 0.55)
 material = ExtResource("6_mist_mat")
 size = Vector2(4.5, 2.2)
 
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_gqmmt"]
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_pm3ni"]
 lifetime_randomness = 0.88
 direction = Vector3(-0.7, 0.03, 0.35)
 spread = 28.0
@@ -574,7 +574,7 @@ amount = 72
 lifetime = 14.0
 preprocess = 10.0
 visibility_aabb = AABB(-28, -2, -46, 56, 8, 92)
-process_material = SubResource("ParticleProcessMaterial_0ld40")
+process_material = SubResource("ParticleProcessMaterial_jscy8")
 draw_pass_1 = SubResource("QuadMesh_mist_a")
 script = ExtResource("2_mist_script")
 
@@ -584,20 +584,28 @@ amount = 28
 lifetime = 18.0
 preprocess = 12.0
 visibility_aabb = AABB(-34, -6, -52, 68, 18, 104)
-process_material = SubResource("ParticleProcessMaterial_gqmmt")
+process_material = SubResource("ParticleProcessMaterial_pm3ni")
 draw_pass_1 = SubResource("QuadMesh_mist_b")
 script = ExtResource("2_mist_script")
 
-[node name="DevHUD" type="CanvasLayer" parent="." unique_id=157010376]
+[node name="World" type="Node3D" parent="."]
+
+[node name="Gameplay" type="Node3D" parent="."]
+
+[node name="UI" type="Node" parent="."]
+
+[node name="Debug" type="Node" parent="."]
+
+[node name="DevHUD" type="CanvasLayer" parent="Debug" unique_id=157010376]
 script = ExtResource("13_dev_hud_script")
 
-[node name="SceneProps" type="Node3D" parent="."]
+[node name="SceneProps" type="Node3D" parent="Gameplay" unique_id=924822925]
 script = ExtResource("20_scene_props_builder")
 
-[node name="Zones" type="Node3D" parent="."]
+[node name="Zones" type="Node3D" parent="Gameplay" unique_id=562780877]
 script = ExtResource("21_zones_builder")
 
-[node name="Collectibles" type="Node3D" parent="."]
+[node name="Collectibles" type="Node3D" parent="Gameplay" unique_id=383267416]
 script = ExtResource("22_collectibles_builder")
 
 [node name="BuildingInterior" type="Node3D" parent="." unique_id=308459113]

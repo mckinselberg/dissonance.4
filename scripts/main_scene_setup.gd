@@ -37,13 +37,13 @@ func _ready() -> void:
 		if lamp_light:
 			lamp_light.light_energy *= energy_scale
 
-	var scene_props_root := get_node_or_null("SceneProps")
+	var scene_props_root := _find_node("Gameplay/SceneProps", "SceneProps")
 	if scene_props_root == null:
 		var props_spawner := SceneProps.new()
 		add_child(props_spawner)
 		props_spawner.setup(self)
 
-	var zones_root := get_node_or_null("Zones")
+	var zones_root := _find_node("Gameplay/Zones", "Zones")
 	if zones_root == null:
 		var zones_spawner := ZonesSetup.new()
 		add_child(zones_spawner)
@@ -51,10 +51,14 @@ func _ready() -> void:
 
 	var collection_mgr := _resolve_collection_manager()
 
-	var hud := get_node_or_null("PlayerHUD")
+	var hud := _find_node("UI/PlayerHUD", "PlayerHUD")
 	if hud == null:
 		hud = PlayerHudScene.instantiate()
-		add_child(hud)
+		var ui_root := _find_node("UI")
+		if ui_root:
+			ui_root.add_child(hud)
+		else:
+			add_child(hud)
 	hud.setup(player)
 	if collection_mgr != null:
 		hud.setup_collection(collection_mgr)
@@ -72,7 +76,7 @@ func _apply_scene_runtime_adjustments() -> void:
 
 
 func _resolve_collection_manager() -> CollectionManager:
-	var collectibles_root := get_node_or_null("Collectibles")
+	var collectibles_root := _find_node("Gameplay/Collectibles", "Collectibles")
 	if collectibles_root != null:
 		var existing_manager := collectibles_root.get_node_or_null("CollectionManager") as CollectionManager
 		if existing_manager != null:
@@ -81,3 +85,12 @@ func _resolve_collection_manager() -> CollectionManager:
 	var collectibles_spawner := CollectiblesSetup.new()
 	add_child(collectibles_spawner)
 	return collectibles_spawner.setup(self)
+
+
+func _find_node(primary_path: String, fallback_path: String = "") -> Node:
+	var node := get_node_or_null(primary_path)
+	if node != null:
+		return node
+	if fallback_path != "":
+		return get_node_or_null(fallback_path)
+	return null
