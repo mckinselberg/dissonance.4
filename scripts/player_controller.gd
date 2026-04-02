@@ -5,9 +5,12 @@ extends CharacterBody3D
 @export var jump_velocity: float = 4.5
 @export var mouse_sensitivity: float = 0.0025
 @export var gravity_scale: float = 1.0
-@export var camera_fov: float = 65.0
-@export var bob_frequency: float = 1.7
-@export var bob_amplitude: float = 0.05
+@export var camera_fov: float = 58.0
+@export var ground_acceleration: float = 10.0
+@export var ground_deceleration: float = 14.0
+@export var air_acceleration: float = 4.5
+@export var bob_frequency: float = 1.0
+@export var bob_amplitude: float = 0.008
 @export var footstep_interval_walk: float = 1.0
 @export var footstep_interval_sprint: float = 0.62
 @export var footstep_volume_db: float = -18.0
@@ -94,8 +97,17 @@ func _physics_process(delta: float) -> void:
 
 	var speed := sprint_speed if Input.is_action_pressed("move_sprint") else walk_speed
 	var threat_mult: float = lerp(1.0, 0.5, _drone_threat * _drone_threat)
-	velocity.x = direction.x * speed * threat_mult
-	velocity.z = direction.z * speed * threat_mult
+	var target_velocity_x := direction.x * speed * threat_mult
+	var target_velocity_z := direction.z * speed * threat_mult
+	var accel := air_acceleration
+	var decel := air_acceleration
+	if is_on_floor():
+		accel = ground_acceleration
+		decel = ground_deceleration
+
+	var horizontal_response := accel if direction.length_squared() > 0.0 else decel
+	velocity.x = move_toward(velocity.x, target_velocity_x, horizontal_response * delta)
+	velocity.z = move_toward(velocity.z, target_velocity_z, horizontal_response * delta)
 
 	# Stumble drift: at high threat the player's movements become erratic
 	if _drone_threat > 0.35:
@@ -135,7 +147,8 @@ func _update_head_bob_and_footsteps(delta: float, input_vector: Vector2, speed: 
 		_bob_time += delta * bob_frequency * bob_speed_scale * TAU
 		var bob_offset_y := sin(_bob_time) * bob_amplitude
 		var bob_offset_x := cos(_bob_time * 0.5) * bob_amplitude * 0.45
-		head.position = _head_base_position + Vector3(bob_offset_x, bob_offset_y, 0.0)
+		var bob_target := _head_base_position + Vector3(bob_offset_x, bob_offset_y, 0.0)
+		head.position = head.position.lerp(bob_target, min(delta * 6.0, 1.0))
 
 		_footstep_timer -= delta
 		if _footstep_timer <= 0.0:

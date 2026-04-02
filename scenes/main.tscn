@@ -15,10 +15,13 @@
 [ext_resource type="Script" uid="uid://b27obhb0vt1yi" path="res://scripts/dev_hud.gd" id="13_dev_hud_script"]
 [ext_resource type="Script" uid="uid://cqe3ca3ghrb8a" path="res://scripts/drone_route_point.gd" id="14_route_point_script"]
 [ext_resource type="Material" uid="uid://cnscbvmek5vs3" path="res://materials/window_warm.tres" id="15_window_mat"]
-[ext_resource type="Script" path="res://scripts/building_interior.gd" id="16_building_script"]
-[ext_resource type="Script" path="res://scripts/mist_setup.gd" id="17_mist_setup_script"]
-[ext_resource type="Script" path="res://scripts/world_extension.gd" id="18_world_ext_script"]
-[ext_resource type="Script" path="res://scripts/boulevard_terminus.gd" id="19_terminus_script"]
+[ext_resource type="Script" uid="uid://1jwo4u5m1mv6" path="res://scripts/building_interior.gd" id="16_building_script"]
+[ext_resource type="Script" uid="uid://w5tvex2ily55" path="res://scripts/mist_setup.gd" id="17_mist_setup_script"]
+[ext_resource type="Script" uid="uid://c2ru21joujsa3" path="res://scripts/world_extension.gd" id="18_world_ext_script"]
+[ext_resource type="Script" uid="uid://db4xc0337y7cs" path="res://scripts/boulevard_terminus.gd" id="19_terminus_script"]
+[ext_resource type="Script" path="res://scripts/scene_props_builder.gd" id="20_scene_props_builder"]
+[ext_resource type="Script" path="res://scripts/zones_builder.gd" id="21_zones_builder"]
+[ext_resource type="Script" path="res://scripts/collectibles_builder.gd" id="22_collectibles_builder"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.35
@@ -122,8 +125,8 @@ material = ExtResource("12_metal_mat")
 size = Vector3(0.12, 1.1, 0.12)
 
 [sub_resource type="FogMaterial" id="FogMaterial_ground_a"]
-density = 0.28
-albedo = Color(0.32, 0.31, 0.29, 1)
+density = -0.2306
+albedo = Color(0.61931354, 0.60359144, 0.5774041, 1)
 edge_fade = 0.2
 
 [sub_resource type="FogMaterial" id="FogMaterial_ground_b"]
@@ -137,7 +140,7 @@ albedo = Color(0.26, 0.27, 0.28, 1)
 height_falloff = 0.1
 edge_fade = 0.4
 
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_mist_a"]
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_0ld40"]
 direction = Vector3(0.9, 0.02, 0.4)
 spread = 32.0
 initial_velocity_min = 0.1
@@ -149,12 +152,13 @@ damping_min = 0.05
 damping_max = 0.12
 scale_min = 1.2
 scale_max = 2.8
+color = Color(1, 1, 1, 0.55)
 
 [sub_resource type="QuadMesh" id="QuadMesh_mist_a"]
 material = ExtResource("6_mist_mat")
 size = Vector2(4.5, 2.2)
 
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_mist_b"]
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_gqmmt"]
 lifetime_randomness = 0.88
 direction = Vector3(-0.7, 0.03, 0.35)
 spread = 28.0
@@ -167,6 +171,7 @@ damping_min = 0.03
 damping_max = 0.1
 scale_min = 1.6
 scale_max = 3.2
+color = Color(1, 1, 1, 0.55)
 
 [sub_resource type="QuadMesh" id="QuadMesh_mist_b"]
 material = ExtResource("6_mist_mat")
@@ -199,7 +204,7 @@ transform = Transform3D(1, 0, 0, 0, 0.9975641, 0.06975647, 0, -0.06975647, 0.997
 
 [node name="Camera3D" type="Camera3D" parent="Player/Head" unique_id=100667854]
 current = true
-fov = 52.0
+fov = 60.0
 far = 300.0
 
 [node name="FootstepPlayer" type="AudioStreamPlayer" parent="Player" unique_id=1133807067]
@@ -550,7 +555,7 @@ mesh = SubResource("BoxMesh_guard_post")
 
 [node name="GroundFog_A" type="FogVolume" parent="FogVolumes" unique_id=779230360]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -34)
-size = Vector3(46, 3.2, 70)
+size = Vector3(123.08, 3.2, 70)
 material = SubResource("FogMaterial_ground_a")
 
 [node name="GroundFog_B" type="FogVolume" parent="FogVolumes" unique_id=760594718]
@@ -569,7 +574,7 @@ amount = 72
 lifetime = 14.0
 preprocess = 10.0
 visibility_aabb = AABB(-28, -2, -46, 56, 8, 92)
-process_material = SubResource("ParticleProcessMaterial_mist_a")
+process_material = SubResource("ParticleProcessMaterial_0ld40")
 draw_pass_1 = SubResource("QuadMesh_mist_a")
 script = ExtResource("2_mist_script")
 
@@ -579,21 +584,30 @@ amount = 28
 lifetime = 18.0
 preprocess = 12.0
 visibility_aabb = AABB(-34, -6, -52, 68, 18, 104)
-process_material = SubResource("ParticleProcessMaterial_mist_b")
+process_material = SubResource("ParticleProcessMaterial_gqmmt")
 draw_pass_1 = SubResource("QuadMesh_mist_b")
 script = ExtResource("2_mist_script")
 
 [node name="DevHUD" type="CanvasLayer" parent="." unique_id=157010376]
 script = ExtResource("13_dev_hud_script")
 
-[node name="BuildingInterior" type="Node3D" parent="."]
+[node name="SceneProps" type="Node3D" parent="."]
+script = ExtResource("20_scene_props_builder")
+
+[node name="Zones" type="Node3D" parent="."]
+script = ExtResource("21_zones_builder")
+
+[node name="Collectibles" type="Node3D" parent="."]
+script = ExtResource("22_collectibles_builder")
+
+[node name="BuildingInterior" type="Node3D" parent="." unique_id=308459113]
 script = ExtResource("16_building_script")
 
-[node name="MistSetup" type="Node3D" parent="."]
+[node name="MistSetup" type="Node3D" parent="." unique_id=1233382746]
 script = ExtResource("17_mist_setup_script")
 
-[node name="WorldExtension" type="Node3D" parent="."]
+[node name="WorldExtension" type="Node3D" parent="." unique_id=165254176]
 script = ExtResource("18_world_ext_script")
 
-[node name="BoulevardTerminus" type="Node3D" parent="."]
+[node name="BoulevardTerminus" type="Node3D" parent="." unique_id=386607891]
 script = ExtResource("19_terminus_script")

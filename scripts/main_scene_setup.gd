@@ -2,8 +2,8 @@ extends Node3D
 
 const SceneProps        := preload("res://scripts/scene_props.gd")
 const ZonesSetup        := preload("res://scripts/zones_setup.gd")
-const PlayerHud         := preload("res://scripts/player_hud.gd")
 const CollectiblesSetup := preload("res://scripts/collectibles_setup.gd")
+const PlayerHudScene    := preload("res://scenes/player_hud.tscn")
 
 @onready var drone: Node3D = $Drone
 @onready var drone_route: Node3D = $DroneRoute
@@ -37,22 +37,27 @@ func _ready() -> void:
 		if lamp_light:
 			lamp_light.light_energy *= energy_scale
 
-	var props_spawner := SceneProps.new()
-	add_child(props_spawner)
-	props_spawner.setup(self)
+	var scene_props_root := get_node_or_null("SceneProps")
+	if scene_props_root == null:
+		var props_spawner := SceneProps.new()
+		add_child(props_spawner)
+		props_spawner.setup(self)
 
-	var zones_spawner := ZonesSetup.new()
-	add_child(zones_spawner)
-	zones_spawner.setup(self)
+	var zones_root := get_node_or_null("Zones")
+	if zones_root == null:
+		var zones_spawner := ZonesSetup.new()
+		add_child(zones_spawner)
+		zones_spawner.setup(self)
 
-	var collectibles_spawner := CollectiblesSetup.new()
-	add_child(collectibles_spawner)
-	var collection_mgr := collectibles_spawner.setup(self)
+	var collection_mgr := _resolve_collection_manager()
 
-	var hud := PlayerHud.new()
-	add_child(hud)
+	var hud := get_node_or_null("PlayerHUD")
+	if hud == null:
+		hud = PlayerHudScene.instantiate()
+		add_child(hud)
 	hud.setup(player)
-	hud.setup_collection(collection_mgr)
+	if collection_mgr != null:
+		hud.setup_collection(collection_mgr)
 
 
 func _apply_scene_defaults() -> void:
@@ -82,3 +87,15 @@ func _set_fog_density(path: String, density: float) -> void:
 	var mat := vol.material as FogMaterial
 	if mat:
 		mat.density = density
+
+
+func _resolve_collection_manager() -> CollectionManager:
+	var collectibles_root := get_node_or_null("Collectibles")
+	if collectibles_root != null:
+		var existing_manager := collectibles_root.get_node_or_null("CollectionManager") as CollectionManager
+		if existing_manager != null:
+			return existing_manager
+
+	var collectibles_spawner := CollectiblesSetup.new()
+	add_child(collectibles_spawner)
+	return collectibles_spawner.setup(self)

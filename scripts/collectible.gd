@@ -1,3 +1,4 @@
+@tool
 class_name MusicalCollectible
 extends Area3D
 
@@ -10,20 +11,30 @@ var _collected: bool = false
 
 
 func _ready() -> void:
-	_label = Label3D.new()
+	_label = get_node_or_null("Label3D") as Label3D
+	if _label == null:
+		_label = Label3D.new()
+		_label.name = "Label3D"
+		_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_label.modulate = Color(1.0, 0.88, 0.3)
+		_label.font_size = 72
+		_label.outline_size = 6
+		_label.pixel_size = 0.008
+		add_child(_label)
 	_label.text = symbol
-	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_label.modulate = Color(1.0, 0.88, 0.3)
-	_label.font_size = 72
-	_label.outline_size = 6
-	_label.pixel_size = 0.008
-	add_child(_label)
 
-	var col := CollisionShape3D.new()
-	var shape := SphereShape3D.new()
-	shape.radius = 1.2
-	col.shape = shape
-	add_child(col)
+	var col := get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if col == null:
+		col = CollisionShape3D.new()
+		col.name = "CollisionShape3D"
+		var shape := SphereShape3D.new()
+		shape.radius = 1.2
+		col.shape = shape
+		add_child(col)
+
+	if Engine.is_editor_hint():
+		set_process(false)
+		return
 
 	body_entered.connect(_on_body_entered)
 
