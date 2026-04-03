@@ -430,6 +430,15 @@ pixel_size = 0.006
 billboard = 1
 modulate = Color(0.95, 0.92, 0.68, 1)
 
+[node name="MaintenanceNote" type="Label3D" parent="Gameplay/FaultRelay"]
+transform = Transform3D(0.76604444, 0, 0.64278764, 0, 1, 0, -0.64278764, 0, 0.76604444, 14.8, 2.55, -66.1)
+text = "Maintenance: route fault overload only when target enters field"
+font_size = 24
+outline_size = 6
+pixel_size = 0.005
+billboard = 1
+modulate = Color(0.78, 0.86, 0.98, 0.92)
+
 [node name="InteractArea" type="Area3D" parent="Gameplay/FaultRelay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.0, 1.3, -67.8)
 
@@ -448,6 +457,24 @@ cast_shadow = 0
 
 [node name="CrashMarker" type="Marker3D" parent="Gameplay/FaultRelay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 1.1, -69.5)
+
+[node name="CrashLight" type="OmniLight3D" parent="Gameplay/FaultRelay"]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 0.99026805, 0.1391731, 0, -0.1391731, 0.99026805, 7.8, 1.8, -69.5)
+light_color = Color(0.95, 0.34, 0.24, 1)
+light_energy = 0.0
+light_volumetric_fog_energy = 0.75
+omni_range = 7.5
+
+[node name="CrashLabel" type="Label3D" parent="Gameplay/FaultRelay"]
+visible = false
+transform = Transform3D(0.98768836, 0, -0.15643448, 0, 1, 0, 0.15643448, 0, 0.98768836, 8.4, 2.2, -67.6)
+text = "Downed drone"
+font_size = 30
+outline_size = 6
+pixel_size = 0.0055
+billboard = 1
+modulate = Color(0.98, 0.72, 0.44, 1)
 
 [node name="StreetLights" type="Node3D" parent="World" unique_id=2085481790]
 

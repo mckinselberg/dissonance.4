@@ -35,6 +35,13 @@ If you are trying to understand the game quickly, inspect the tree in this order
 
 That order gives you the core loop first, then the authored support structure.
 
+Inside `Gameplay/FaultRelay`, the current takedown foundation is intentionally readable in-editor:
+
+- `ControlBox`, `ControlLight`, and `StatusLabel` define the interact point
+- `MaintenanceNote` communicates the boulevard-world clue for the takedown window
+- `FaultZone` and `FaultPreview` show where the drone must be lured
+- `CrashMarker`, `CrashLight`, and `CrashLabel` define the post-takedown handoff space
+
 ## Authored Vs Procedural
 
 The current rule of thumb is:

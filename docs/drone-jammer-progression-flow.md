@@ -190,6 +190,22 @@ The slice should include authored support for this flow:
 - one repurpose station
 - one jammer-enabled traversal gate or dangerous crossing
 
+## Current Implementation Status
+
+Implemented foundation:
+
+- one authored `Gameplay/FaultRelay` takedown opportunity
+- one readable `FaultZone` volume and preview field
+- one diegetic maintenance clue at the relay
+- one authored crash marker with a post-takedown handoff beacon
+
+Still to implement:
+
+- salvage interaction
+- repurpose point
+- jammer behavior
+- jammer-gated traversal payoff
+
 ## Required Systems
 
 Minimum systems needed:

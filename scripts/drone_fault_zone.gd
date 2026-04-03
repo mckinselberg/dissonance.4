@@ -12,12 +12,23 @@ var _spent: bool = false
 @onready var _crash_marker: Marker3D = $CrashMarker
 @onready var _status_label: Label3D = $StatusLabel
 @onready var _control_light: OmniLight3D = $ControlLight
+@onready var _crash_label: Label3D = $CrashLabel
+@onready var _crash_light: OmniLight3D = $CrashLight
+@onready var _maintenance_note: Label3D = $MaintenanceNote
 
 
 func _ready() -> void:
 	_interact_area.body_entered.connect(_on_interact_body_entered)
 	_interact_area.body_exited.connect(_on_interact_body_exited)
+	_set_crash_site_active(false)
 	_sync_state_text()
+
+
+func _process(_delta: float) -> void:
+	if _spent:
+		return
+	if _player_inside:
+		_sync_state_text()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -38,6 +49,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_status_label.text = "Fault relay: tripped"
 		_control_light.light_color = Color(0.95, 0.22, 0.18)
 		_control_light.light_energy = 2.4
+		_set_crash_site_active(true)
 		get_viewport().set_input_as_handled()
 
 
@@ -85,10 +97,21 @@ func _sync_state_text() -> void:
 		_control_light.light_energy = 1.2
 		return
 	if _player_inside:
-		_status_label.text = "Fault relay [G]"
-		_control_light.light_color = Color(0.95, 0.82, 0.38)
-		_control_light.light_energy = 1.8
+		var target_ready := _find_target_drone() != null
+		_status_label.text = "Fault relay [G] ready" if target_ready else "Fault relay [G] standby"
+		_control_light.light_color = Color(0.98, 0.52, 0.18) if target_ready else Color(0.95, 0.82, 0.38)
+		_control_light.light_energy = 2.2 if target_ready else 1.8
 		return
 	_status_label.text = "Fault relay"
 	_control_light.light_color = Color(0.72, 0.82, 0.98)
 	_control_light.light_energy = 1.1
+
+
+func _set_crash_site_active(active: bool) -> void:
+	if _crash_label:
+		_crash_label.visible = active
+	if _crash_light:
+		_crash_light.visible = active
+		_crash_light.light_energy = 1.6 if active else 0.0
+	if _maintenance_note:
+		_maintenance_note.visible = not active
