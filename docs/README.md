@@ -5,6 +5,8 @@ This folder contains planning and delivery documents for moving `Dissonance Surv
 Documents:
 
 - `bmad-product-brief.md`: product intent, design pillars, constraints, and success metrics
+- `bmad-next-production-milestone.md`: the next BMAD delivery milestone built on the refactored scene ownership model
+- `godot-4.6-review-pass.md`: current review findings on onboarding clarity and lingering scene-structure risks
 - `scene-onboarding.md`: quickest orientation guide for understanding `main.tscn`, scene ownership, and debug HUD behavior
 - `scene-architecture-contract.md`: scene ownership rules, node contracts, and authored-vs-procedural policy
 - `editor-preview-epic.md`: Godot 4.6 quality-of-life plan for editor-visible scene previews
@@ -25,7 +27,9 @@ Recommended reading order:
 
 1. `bmad-product-brief.md`
 2. `scene-onboarding.md`
-3. `world-integration-guidelines.md`
-4. `scene-architecture-contract.md`
-5. `editor-preview-epic.md`
-6. `vertical-slice-definition.md`
+3. `godot-4.6-review-pass.md`
+4. `bmad-next-production-milestone.md`
+5. `world-integration-guidelines.md`
+6. `scene-architecture-contract.md`
+7. `editor-preview-epic.md`
+8. `vertical-slice-definition.md`
