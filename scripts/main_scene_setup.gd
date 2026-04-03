@@ -4,6 +4,7 @@ const SceneProps        := preload("res://scripts/scene_props.gd")
 const ZonesSetup        := preload("res://scripts/zones_setup.gd")
 const CollectiblesSetup := preload("res://scripts/collectibles_setup.gd")
 const PlayerHudScene    := preload("res://scenes/player_hud.tscn")
+const PauseMenuScene    := preload("res://scenes/pause_menu.tscn")
 
 var drone: Node3D
 var drone_route: Node3D
@@ -64,6 +65,17 @@ func _ready() -> void:
 	if collection_mgr != null:
 		if hud != null and hud.has_method("setup_collection"):
 			hud.call("setup_collection", collection_mgr)
+
+	var pause_menu := _find_node("UI/PauseMenu", "PauseMenu")
+	if pause_menu == null:
+		pause_menu = PauseMenuScene.instantiate()
+		var pause_ui_root := _find_node("UI")
+		if pause_ui_root:
+			pause_ui_root.add_child(pause_menu)
+		else:
+			add_child(pause_menu)
+	if pause_menu != null and pause_menu.has_method("setup"):
+		pause_menu.call("setup", player)
 
 
 func _resolve_scene_nodes() -> void:

@@ -15,7 +15,7 @@ Open `main.tscn` first. The scene tree should now explain most of the playable s
 - `SceneProps`: authored or editor-generated non-critical props and preview content
 - `Zones`: zone volumes that affect the player state model
 - `Collectibles`: collectible instances and the collection manager
-- `UI`: player-facing interface, including `PlayerHUD`
+- `UI`: player-facing interface, including `PlayerHUD` and the baseline `PauseMenu`
 - `Debug`: optional debugging overlays and tools
 
 ## What To Read In The Editor
@@ -30,6 +30,7 @@ If you are trying to understand the game quickly, inspect the tree in this order
 6. `SceneProps`
 7. `World`
 8. `UI/PlayerHUD`
+9. `UI/PauseMenu`
 
 That order gives you the core loop first, then the authored support structure.
 
@@ -81,6 +82,20 @@ If you need the lighting and fog tuning overlay:
 4. Use `F1` to toggle the overlay
 
 When the overlay is disabled, it does not build its UI or bind its toggle input.
+
+## Pause And Settings Baseline
+
+`UI/PauseMenu` is now the minimum production-facing pause/settings layer for repeated slice playtests.
+
+It currently provides:
+
+- resume
+- restart
+- mouse sensitivity tuning
+- master volume tuning
+- fullscreen toggle
+
+The pause menu uses `ui_cancel` and is intended to be the starting point for the broader slice-ready settings flow.
 
 ## Current Practical Workflow
 
