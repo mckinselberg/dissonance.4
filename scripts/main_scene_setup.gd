@@ -59,9 +59,11 @@ func _ready() -> void:
 			ui_root.add_child(hud)
 		else:
 			add_child(hud)
-	hud.setup(player)
+	if hud != null and hud.has_method("setup"):
+		hud.call("setup", player)
 	if collection_mgr != null:
-		hud.setup_collection(collection_mgr)
+		if hud != null and hud.has_method("setup_collection"):
+			hud.call("setup_collection", collection_mgr)
 
 
 func _resolve_scene_nodes() -> void:
