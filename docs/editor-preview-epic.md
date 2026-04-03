@@ -155,10 +155,11 @@ Implemented so far:
 - core world and gameplay nodes now live under `World` and `Gameplay` instead of all sitting directly under `Main`
 - the wrapper-root migration exposed stale descendant `parent="..."` paths in `main.tscn`; those were corrected and the game was manually verified to run again after the fix
 - world-owned helper builders now also live under `World`: `BuildingInterior`, `MistSetup`, `WorldExtension`, and `BoulevardTerminus`
+- `SceneProps`, `Zones`, and `Collectibles` are now top-level authored roots, separate from `Gameplay`, so content ownership reads more clearly in the editor while runtime wiring still resolves them safely
 
 Recommended next step:
 
-- decide whether `SceneProps`, `Zones`, and `Collectibles` should remain gameplay-owned or become top-level authored roots that `Gameplay` references
+- finish converging the scene tree and docs on the target ownership contract, then consider whether `PlayerHUD` should also be instantiated as an authored child of `UI` in `main.tscn`
 
 ## Godot 4.6 Implementation Notes
 
