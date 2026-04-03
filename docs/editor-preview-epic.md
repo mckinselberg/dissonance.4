@@ -157,10 +157,11 @@ Implemented so far:
 - world-owned helper builders now also live under `World`: `BuildingInterior`, `MistSetup`, `WorldExtension`, and `BoulevardTerminus`
 - `SceneProps`, `Zones`, and `Collectibles` are now top-level authored roots, separate from `Gameplay`, so content ownership reads more clearly in the editor while runtime wiring still resolves them safely
 - `PlayerHUD` is now authored as a child of `UI` in `main.tscn`, so the main player-facing interface is visible in the editor by default instead of appearing only at runtime
+- remaining direct world geometry like sidewalks, curbs, and the tower shell has also been moved under `World`, reducing clutter at the `Main` root
 
 Recommended next step:
 
-- finish converging the scene tree and docs on the target ownership contract, then decide whether remaining direct children of `Main` like sidewalks and tower shell geometry should move under `World`
+- finish converging the scene tree and docs on the target ownership contract, then consider whether `DevHUD` should remain its own debug overlay or become optional/editor-disabled by default
 
 ## Godot 4.6 Implementation Notes
 

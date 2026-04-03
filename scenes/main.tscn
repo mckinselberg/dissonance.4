@@ -228,61 +228,61 @@ mesh = SubResource("BoxMesh_ground")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, -40)
 shape = SubResource("BoxShape3D_ground")
 
-[node name="Sidewalk_Left" type="MeshInstance3D" parent="." unique_id=750442214]
+[node name="Sidewalk_Left" type="MeshInstance3D" parent="World" unique_id=750442214]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, -0.08, -40)
 mesh = SubResource("BoxMesh_sidewalk")
 
-[node name="Sidewalk_Right" type="MeshInstance3D" parent="." unique_id=1128553343]
+[node name="Sidewalk_Right" type="MeshInstance3D" parent="World" unique_id=1128553343]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, -0.08, -40)
 mesh = SubResource("BoxMesh_sidewalk")
 
-[node name="Curb_Left" type="MeshInstance3D" parent="." unique_id=701079624]
+[node name="Curb_Left" type="MeshInstance3D" parent="World" unique_id=701079624]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.2, 0.02, -40)
 mesh = SubResource("BoxMesh_curb")
 
-[node name="Curb_Right" type="MeshInstance3D" parent="." unique_id=786935775]
+[node name="Curb_Right" type="MeshInstance3D" parent="World" unique_id=786935775]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.2, 0.02, -40)
 mesh = SubResource("BoxMesh_curb")
 
-[node name="SidewalkBody_Left" type="StaticBody3D" parent="." unique_id=69943926]
+[node name="SidewalkBody_Left" type="StaticBody3D" parent="World" unique_id=69943926]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SidewalkBody_Left" unique_id=433199665]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="World/SidewalkBody_Left" unique_id=433199665]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, -0.08, -40)
 shape = SubResource("BoxShape3D_sidewalk")
 
-[node name="SidewalkBody_Right" type="StaticBody3D" parent="." unique_id=366682484]
+[node name="SidewalkBody_Right" type="StaticBody3D" parent="World" unique_id=366682484]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SidewalkBody_Right" unique_id=39986029]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="World/SidewalkBody_Right" unique_id=39986029]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, -0.08, -40)
 shape = SubResource("BoxShape3D_sidewalk")
 
-[node name="Tower_Main" type="MeshInstance3D" parent="." unique_id=80303966]
+[node name="Tower_Main" type="MeshInstance3D" parent="World" unique_id=80303966]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 20, -20)
 mesh = SubResource("BoxMesh_main_tower")
 
-[node name="Tower_Main_Window_01" type="MeshInstance3D" parent="." unique_id=1997472847]
+[node name="Tower_Main_Window_01" type="MeshInstance3D" parent="World" unique_id=1997472847]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.95, 8, -14)
 mesh = SubResource("BoxMesh_window_panel")
 
-[node name="Tower_Main_Window_02" type="MeshInstance3D" parent="." unique_id=2133101292]
+[node name="Tower_Main_Window_02" type="MeshInstance3D" parent="World" unique_id=2133101292]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.95, 14.5, -10.5)
 mesh = SubResource("BoxMesh_window_panel")
 
-[node name="Tower_Main_Window_03" type="MeshInstance3D" parent="." unique_id=1877445944]
+[node name="Tower_Main_Window_03" type="MeshInstance3D" parent="World" unique_id=1877445944]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -10.5, 23, -10.95)
 mesh = SubResource("BoxMesh_window_panel")
 
-[node name="Tower_Main_Window_04" type="MeshInstance3D" parent="." unique_id=547342970]
+[node name="Tower_Main_Window_04" type="MeshInstance3D" parent="World" unique_id=547342970]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -17.05, 29, -18.2)
 mesh = SubResource("BoxMesh_window_panel")
 
-[node name="Tower_Main_Window_05" type="MeshInstance3D" parent="." unique_id=395482542]
+[node name="Tower_Main_Window_05" type="MeshInstance3D" parent="World" unique_id=395482542]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.95, 31.5, -21.5)
 mesh = SubResource("BoxMesh_window_panel")
 
-[node name="Tower_Main_Body" type="StaticBody3D" parent="." unique_id=435251488]
+[node name="Tower_Main_Body" type="StaticBody3D" parent="World" unique_id=435251488]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Tower_Main_Body" unique_id=1504046532]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="World/Tower_Main_Body" unique_id=1504046532]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 20, -20)
 shape = SubResource("BoxShape3D_main_tower")
 
