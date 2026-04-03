@@ -152,10 +152,12 @@ Implemented so far:
 - `player_hud.tscn` now owns the HUD structure instead of building the entire interface procedurally at runtime
 - `main_scene_setup.gd` no longer force-overrides fog and directional-light defaults during startup
 - `main.tscn` now has initial `World`, `Gameplay`, `UI`, and `Debug` wrapper roots, with `SceneProps`, `Zones`, `Collectibles`, and `DevHUD` migrated into lower-risk buckets first
+- core world and gameplay nodes now live under `World` and `Gameplay` instead of all sitting directly under `Main`
+- the wrapper-root migration exposed stale descendant `parent="..."` paths in `main.tscn`; those were corrected and the game was manually verified to run again after the fix
 
 Recommended next step:
 
-- move `main.tscn` closer to the target top-level ownership layout: `World`, `Gameplay`, `SceneProps`, `Zones`, `Collectibles`, `UI`, and `Debug`
+- move the remaining world-owned helper builders under `World`: `BuildingInterior`, `MistSetup`, `WorldExtension`, and `BoulevardTerminus`
 
 ## Godot 4.6 Implementation Notes
 
