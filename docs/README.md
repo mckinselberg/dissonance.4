@@ -6,6 +6,7 @@ Documents:
 
 - `bmad-product-brief.md`: product intent, design pillars, constraints, and success metrics
 - `bmad-next-production-milestone.md`: the next BMAD delivery milestone built on the refactored scene ownership model
+- `drone-jammer-progression-flow.md`: exact vertical-slice progression spec for the first drone-disable-to-jammer payoff
 - `godot-4.6-review-pass.md`: current review findings on onboarding clarity and lingering scene-structure risks
 - `scene-onboarding.md`: quickest orientation guide for understanding `main.tscn`, scene ownership, and debug HUD behavior
 - `scene-architecture-contract.md`: scene ownership rules, node contracts, and authored-vs-procedural policy
@@ -29,7 +30,8 @@ Recommended reading order:
 2. `scene-onboarding.md`
 3. `godot-4.6-review-pass.md`
 4. `bmad-next-production-milestone.md`
-5. `world-integration-guidelines.md`
-6. `scene-architecture-contract.md`
-7. `editor-preview-epic.md`
-8. `vertical-slice-definition.md`
+5. `drone-jammer-progression-flow.md`
+6. `world-integration-guidelines.md`
+7. `scene-architecture-contract.md`
+8. `editor-preview-epic.md`
+9. `vertical-slice-definition.md`

@@ -66,6 +66,8 @@ A strong preferred option for the current project is:
 - salvage its parts
 - build or unlock an anti-detection audio jammer from Synod hardware
 
+See `drone-jammer-progression-flow.md` for the exact slice version of this objective.
+
 ### 5. Atmosphere Hook
 
 The slice must produce strong trailer and screenshot moments:

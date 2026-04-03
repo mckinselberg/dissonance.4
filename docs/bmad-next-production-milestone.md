@@ -84,6 +84,10 @@ Implement the current best progression hook from the planning docs:
 This does not need the full long-term sound-resistance system yet.
 It needs one strong, playable proof point.
 
+Current spec:
+
+- `drone-jammer-progression-flow.md`
+
 ### 4. Content Pipeline Hardening
 
 - convert remaining fragile runtime fallbacks into explicit authored expectations or validation warnings
@@ -146,7 +150,7 @@ This milestone succeeds when:
 ## Immediate Backlog
 
 1. audit `main_scene_setup.gd` fallbacks and mark which should become validation warnings next
-2. define the exact drone-disable-to-jammer flow for the slice
+2. implement the exact drone-disable-to-jammer flow defined in `drone-jammer-progression-flow.md`
 3. add minimum settings and pause flows under `UI`
 4. document validation steps for Godot 4.6 slice review sessions
 5. identify whether `World` needs sub-roots before more district content is added
