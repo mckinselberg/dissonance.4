@@ -10,8 +10,11 @@ func _ready() -> void:
 
 func _do_spawn() -> void:
 	# Pull back the existing flat mist sheets so they read as background haze.
+	var root := get_parent()
+	if root != null and root.name == "World":
+		root = root.get_parent()
 	for node_name in ["MistParticles_A", "MistParticles_B"]:
-		var existing := get_parent().get_node_or_null(node_name) as GPUParticles3D
+		var existing := _find_particle(root, node_name)
 		if existing == null:
 			continue
 		var pm := existing.process_material as ParticleProcessMaterial
@@ -72,6 +75,15 @@ func _spawn_ground_tendril(z: float) -> void:
 
 	particles.process_material = proc_mat
 	add_child(particles)
+
+
+func _find_particle(root: Node, node_name: String) -> GPUParticles3D:
+	if root == null:
+		return null
+	var nested := root.get_node_or_null("World/%s" % node_name) as GPUParticles3D
+	if nested != null:
+		return nested
+	return root.get_node_or_null(node_name) as GPUParticles3D
 
 
 func _spawn_mid_haze(z: float) -> void:
