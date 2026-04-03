@@ -2,6 +2,8 @@ extends CanvasLayer
 
 const TOGGLE_ACTION := &"dev_hud_toggle"
 
+@export var debug_overlay_enabled: bool = false
+
 const PRESET_NIGHT := {
 	"ambient_energy": 0.30,
 	"exposure": 1.08,
@@ -47,9 +49,12 @@ var _copy_button: Button
 func _ready() -> void:
 	layer = 10
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	visible = false
+	if not debug_overlay_enabled:
+		set_process_unhandled_input(false)
+		return
 	_ensure_input_action()
 	_build_ui()
-	visible = false
 	call_deferred("_bind_scene")
 
 

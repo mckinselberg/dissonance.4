@@ -158,10 +158,11 @@ Implemented so far:
 - `SceneProps`, `Zones`, and `Collectibles` are now top-level authored roots, separate from `Gameplay`, so content ownership reads more clearly in the editor while runtime wiring still resolves them safely
 - `PlayerHUD` is now authored as a child of `UI` in `main.tscn`, so the main player-facing interface is visible in the editor by default instead of appearing only at runtime
 - remaining direct world geometry like sidewalks, curbs, and the tower shell has also been moved under `World`, reducing clutter at the `Main` root
+- `DevHUD` now stays truly optional and disabled by default, so the production-facing HUD is the first interface a new engineer encounters unless they explicitly turn debug tuning back on
 
 Recommended next step:
 
-- finish converging the scene tree and docs on the target ownership contract, then consider whether `DevHUD` should remain its own debug overlay or become optional/editor-disabled by default
+- add a short onboarding note that explains the new scene ownership contract and how to re-enable `DevHUD` when lighting/fog tuning is needed
 
 ## Godot 4.6 Implementation Notes
 
