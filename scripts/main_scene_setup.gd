@@ -1,11 +1,5 @@
 extends Node3D
 
-const SceneProps        := preload("res://scripts/scene_props.gd")
-const ZonesSetup        := preload("res://scripts/zones_setup.gd")
-const CollectiblesSetup := preload("res://scripts/collectibles_setup.gd")
-const PlayerHudScene    := preload("res://scenes/player_hud.tscn")
-const PauseMenuScene    := preload("res://scenes/pause_menu.tscn")
-
 var drone: Node3D
 var drone_route: Node3D
 var mist_a: GPUParticles3D
@@ -18,13 +12,13 @@ func _ready() -> void:
 	randomize()
 	_resolve_scene_nodes()
 
-	if drone.has_method("randomize_motion"):
+	if drone != null and drone.has_method("randomize_motion"):
 		drone.call("randomize_motion", randf_range(0.0, TAU))
-	if drone.has_method("set_route"):
+	if drone != null and drone.has_method("set_route"):
 		drone.call("set_route", drone_route)
-	if drone.has_method("set_player"):
+	if drone != null and drone.has_method("set_player"):
 		drone.call("set_player", player)
-	if drone.has_method("set_route_gizmo_visible"):
+	if drone != null and drone.has_method("set_route_gizmo_visible"):
 		drone.call("set_route_gizmo_visible", true)
 
 	_apply_scene_runtime_adjustments()
@@ -40,51 +34,30 @@ func _ready() -> void:
 			if lamp_light:
 				lamp_light.light_energy *= energy_scale
 
-	var scene_props_root := _find_node("SceneProps", "Gameplay/SceneProps")
-	if scene_props_root == null:
-		scene_props_root = _ensure_content_root("SceneProps")
-		SceneProps.new().setup(scene_props_root)
-
-	var zones_root := _find_node("Zones", "Gameplay/Zones")
-	if zones_root == null:
-		zones_root = _ensure_content_root("Zones")
-		ZonesSetup.new().setup(zones_root)
+	_require_authored_node("SceneProps", "Gameplay/SceneProps", "SceneProps root")
+	_require_authored_node("Zones", "Gameplay/Zones", "Zones root")
 
 	var collection_mgr := _resolve_collection_manager()
 
-	var hud := _find_node("UI/PlayerHUD", "PlayerHUD")
-	if hud == null:
-		hud = PlayerHudScene.instantiate()
-		var ui_root := _find_node("UI")
-		if ui_root:
-			ui_root.add_child(hud)
-		else:
-			add_child(hud)
+	var hud := _require_authored_node("UI/PlayerHUD", "PlayerHUD", "PlayerHUD scene")
 	if hud != null and hud.has_method("setup"):
 		hud.call("setup", player)
 	if collection_mgr != null:
 		if hud != null and hud.has_method("setup_collection"):
 			hud.call("setup_collection", collection_mgr)
 
-	var pause_menu := _find_node("UI/PauseMenu", "PauseMenu")
-	if pause_menu == null:
-		pause_menu = PauseMenuScene.instantiate()
-		var pause_ui_root := _find_node("UI")
-		if pause_ui_root:
-			pause_ui_root.add_child(pause_menu)
-		else:
-			add_child(pause_menu)
+	var pause_menu := _require_authored_node("UI/PauseMenu", "PauseMenu", "PauseMenu scene")
 	if pause_menu != null and pause_menu.has_method("setup"):
 		pause_menu.call("setup", player)
 
 
 func _resolve_scene_nodes() -> void:
-	drone = _find_node("Gameplay/Drone", "Drone") as Node3D
-	drone_route = _find_node("Gameplay/DroneRoute", "DroneRoute") as Node3D
-	mist_a = _find_node("World/MistParticles_A", "MistParticles_A") as GPUParticles3D
-	mist_b = _find_node("World/MistParticles_B", "MistParticles_B") as GPUParticles3D
-	street_lights = _find_node("World/StreetLights", "StreetLights") as Node3D
-	player = _find_node("Gameplay/Player", "Player") as Node3D
+	drone = _require_authored_node("Gameplay/Drone", "Drone", "Drone") as Node3D
+	drone_route = _require_authored_node("Gameplay/DroneRoute", "DroneRoute", "DroneRoute") as Node3D
+	mist_a = _require_authored_node("World/MistParticles_A", "MistParticles_A", "MistParticles_A") as GPUParticles3D
+	mist_b = _require_authored_node("World/MistParticles_B", "MistParticles_B", "MistParticles_B") as GPUParticles3D
+	street_lights = _require_authored_node("World/StreetLights", "StreetLights", "StreetLights") as Node3D
+	player = _require_authored_node("Gameplay/Player", "Player", "Player") as Node3D
 
 
 func _apply_scene_runtime_adjustments() -> void:
@@ -99,25 +72,31 @@ func _apply_scene_runtime_adjustments() -> void:
 
 
 func _resolve_collection_manager() -> CollectionManager:
-	var collectibles_root := _find_node("Collectibles", "Gameplay/Collectibles")
-	if collectibles_root != null:
-		var existing_manager := collectibles_root.get_node_or_null("CollectionManager") as CollectionManager
-		if existing_manager != null:
-			return existing_manager
+	var collectibles_root := _require_authored_node("Collectibles", "Gameplay/Collectibles", "Collectibles root")
+	if collectibles_root == null:
+		return null
 
-	collectibles_root = _ensure_content_root("Collectibles")
-	return CollectiblesSetup.new().setup(collectibles_root)
+	var existing_manager := collectibles_root.get_node_or_null("CollectionManager") as CollectionManager
+	if existing_manager != null:
+		return existing_manager
+
+	push_warning("Missing authored CollectionManager under Collectibles root. The vertical slice should not rely on runtime fallback creation here.")
+	return null
 
 
-func _ensure_content_root(node_name: String) -> Node3D:
-	var existing := get_node_or_null(node_name) as Node3D
-	if existing != null:
-		return existing
+func _require_authored_node(primary_path: String, fallback_path: String, label: String) -> Node:
+	var primary := get_node_or_null(primary_path)
+	if primary != null:
+		return primary
 
-	var root := Node3D.new()
-	root.name = node_name
-	add_child(root)
-	return root
+	if fallback_path != "":
+		var fallback := get_node_or_null(fallback_path)
+		if fallback != null:
+			push_warning("%s is still using legacy path '%s'. Move it to '%s'." % [label, fallback_path, primary_path])
+			return fallback
+
+	push_warning("Missing authored %s at '%s'." % [label, primary_path])
+	return null
 
 
 func _find_node(primary_path: String, fallback_path: String = "") -> Node:

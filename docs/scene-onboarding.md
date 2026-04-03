@@ -66,9 +66,11 @@ It currently:
 - connects the drone to route and player
 - applies a small amount of runtime variation
 - removes the obsolete rear wall so the extended boulevard stays reachable
-- falls back to creating certain roots if they are missing
+- warns when required authored content roots or UI scenes are missing
 
 If you find yourself adding major spatial content only in runtime setup, that is usually a sign the content belongs in the scene tree instead.
+
+If the game now warns about missing `SceneProps`, `Zones`, `Collectibles`, `UI/PlayerHUD`, `UI/PauseMenu`, or `Collectibles/CollectionManager`, treat that as a scene-authoring problem to fix in `main.tscn`, not something to patch by adding more fallback spawning.
 
 ## DevHUD
 

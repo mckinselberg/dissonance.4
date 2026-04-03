@@ -90,6 +90,11 @@ It needs one strong, playable proof point.
 - document where new world content, zones, collectibles, and UI elements belong
 - keep builder behavior predictable for engineers and agents
 
+Current progress:
+
+- `main_scene_setup.gd` now warns for missing authored content roots and legacy node paths instead of silently recreating major UI/content structure
+- `Collectibles/CollectionManager` is now treated as an authored expectation for the vertical-slice path
+
 ### 5. External Playtest Readiness
 
 - enough stability to support guided external playtests
