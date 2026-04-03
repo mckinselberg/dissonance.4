@@ -94,6 +94,7 @@ It currently provides:
 - mouse sensitivity tuning
 - master volume tuning
 - fullscreen toggle
+- core keyboard rebinding for movement and player actions
 
 The pause menu uses `ui_cancel` and is intended to be the starting point for the broader slice-ready settings flow.
 

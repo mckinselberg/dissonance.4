@@ -2,8 +2,22 @@ extends CanvasLayer
 
 @export var pause_action: StringName = &"ui_cancel"
 
+const _REBIND_ACTIONS := [
+	{action = &"move_forward", label = "Forward"},
+	{action = &"move_back", label = "Back"},
+	{action = &"move_left", label = "Left"},
+	{action = &"move_right", label = "Right"},
+	{action = &"move_jump", label = "Jump"},
+	{action = &"move_sprint", label = "Sprint"},
+	{action = &"player_regulate", label = "Regulate"},
+	{action = &"player_rest", label = "Rest"},
+	{action = &"player_flashlight", label = "Flashlight"},
+]
+
 var _player: Node3D
 var _is_open: bool = false
+var _awaiting_rebind_action: StringName = &""
+var _rebind_buttons: Dictionary = {}
 
 @onready var _backdrop: ColorRect = $Backdrop
 @onready var _panel: PanelContainer = $Panel
@@ -14,6 +28,7 @@ var _is_open: bool = false
 @onready var _volume_slider: HSlider = $Panel/Margin/VBox/Settings/VolumeRow/VolumeSlider
 @onready var _volume_value: Label = $Panel/Margin/VBox/Settings/VolumeRow/VolumeValue
 @onready var _fullscreen_toggle: CheckBox = $Panel/Margin/VBox/Settings/FullscreenToggle
+@onready var _rebind_status: Label = $Panel/Margin/VBox/Rebinds/RebindStatus
 
 
 func _ready() -> void:
@@ -26,6 +41,7 @@ func _ready() -> void:
 	_mouse_slider.value_changed.connect(_on_mouse_sensitivity_changed)
 	_volume_slider.value_changed.connect(_on_master_volume_changed)
 	_fullscreen_toggle.toggled.connect(_on_fullscreen_toggled)
+	_bind_rebind_buttons()
 	_sync_from_runtime()
 
 
@@ -35,6 +51,15 @@ func setup(player: Node3D) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _awaiting_rebind_action != &"":
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.physical_keycode == KEY_ESCAPE:
+				_cancel_rebind_capture()
+			else:
+				_apply_rebind(_awaiting_rebind_action, event.physical_keycode)
+			get_viewport().set_input_as_handled()
+		return
+
 	if event.is_action_pressed(pause_action):
 		if _is_open:
 			_close_menu()
@@ -56,6 +81,7 @@ func _open_menu() -> void:
 func _close_menu() -> void:
 	if not _is_open:
 		return
+	_cancel_rebind_capture()
 	_is_open = false
 	hide()
 	get_tree().paused = false
@@ -86,6 +112,7 @@ func _sync_from_runtime() -> void:
 
 	var window_mode := DisplayServer.window_get_mode()
 	_fullscreen_toggle.button_pressed = window_mode == DisplayServer.WINDOW_MODE_FULLSCREEN
+	_refresh_rebind_labels()
 
 
 func _on_mouse_sensitivity_changed(value: float) -> void:
@@ -122,3 +149,63 @@ func _apply_styles() -> void:
 	panel_style.corner_radius_bottom_left = 8
 	panel_style.corner_radius_bottom_right = 8
 	_panel.add_theme_stylebox_override("panel", panel_style)
+
+
+func _bind_rebind_buttons() -> void:
+	for entry in _REBIND_ACTIONS:
+		var action: StringName = entry.action
+		var button := get_node("Panel/Margin/VBox/Rebinds/%sRow/BindButton" % String(action)) as Button
+		if button == null:
+			continue
+		_rebind_buttons[action] = button
+		button.pressed.connect(_begin_rebind_capture.bind(action))
+
+
+func _begin_rebind_capture(action: StringName) -> void:
+	_awaiting_rebind_action = action
+	_rebind_status.text = "Press a key for %s. Esc cancels." % _get_rebind_label(action)
+	_refresh_rebind_labels()
+
+
+func _cancel_rebind_capture() -> void:
+	_awaiting_rebind_action = &""
+	_rebind_status.text = "Click a bind button to assign a key."
+	_refresh_rebind_labels()
+
+
+func _apply_rebind(action: StringName, keycode: Key) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	InputMap.action_erase_events(action)
+	var event := InputEventKey.new()
+	event.physical_keycode = keycode
+	InputMap.action_add_event(action, event)
+	_cancel_rebind_capture()
+
+
+func _refresh_rebind_labels() -> void:
+	for entry in _REBIND_ACTIONS:
+		var action: StringName = entry.action
+		var button := _rebind_buttons.get(action) as Button
+		if button == null:
+			continue
+		if _awaiting_rebind_action == action:
+			button.text = "Press key..."
+		else:
+			button.text = _get_action_binding_text(action)
+
+
+func _get_action_binding_text(action: StringName) -> String:
+	for action_event in InputMap.action_get_events(action):
+		if action_event is InputEventKey:
+			var key_event := action_event as InputEventKey
+			if key_event.physical_keycode != KEY_NONE:
+				return OS.get_keycode_string(key_event.physical_keycode)
+	return "Unbound"
+
+
+func _get_rebind_label(action: StringName) -> String:
+	for entry in _REBIND_ACTIONS:
+		if entry.action == action:
+			return String(entry.label)
+	return String(action)

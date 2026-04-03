@@ -16,9 +16,9 @@ mouse_filter = 1
 
 [node name="Panel" type="PanelContainer" parent="."]
 offset_left = -210.0
-offset_top = -160.0
+offset_top = -230.0
 offset_right = 210.0
-offset_bottom = 160.0
+offset_bottom = 230.0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -26,7 +26,7 @@ anchor_bottom = 0.5
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
 offset_right = 420.0
-offset_bottom = 320.0
+offset_bottom = 460.0
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 20
@@ -34,7 +34,7 @@ theme_override_constants/margin_bottom = 18
 
 [node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
 offset_right = 380.0
-offset_bottom = 284.0
+offset_bottom = 424.0
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Panel/Margin/VBox"]
@@ -87,6 +87,114 @@ horizontal_alignment = 2
 
 [node name="FullscreenToggle" type="CheckBox" parent="Panel/Margin/VBox/Settings"]
 text = "Fullscreen"
+
+[node name="Rebinds" type="VBoxContainer" parent="Panel/Margin/VBox"]
+theme_override_constants/separation = 8
+
+[node name="RebindTitle" type="Label" parent="Panel/Margin/VBox/Rebinds"]
+text = "Key Rebinding"
+
+[node name="RebindStatus" type="Label" parent="Panel/Margin/VBox/Rebinds"]
+text = "Click a bind button to assign a key."
+
+[node name="move_forwardRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
+theme_override_constants/separation = 10
+
+[node name="ActionLabel" type="Label" parent="Panel/Margin/VBox/Rebinds/move_forwardRow"]
+custom_minimum_size = Vector2(110, 0)
+text = "Forward"
+
+[node name="BindButton" type="Button" parent="Panel/Margin/VBox/Rebinds/move_forwardRow"]
+size_flags_horizontal = 3
+text = "W"
+
+[node name="move_backRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
+theme_override_constants/separation = 10
+
+[node name="ActionLabel" type="Label" parent="Panel/Margin/VBox/Rebinds/move_backRow"]
+custom_minimum_size = Vector2(110, 0)
+text = "Back"
+
+[node name="BindButton" type="Button" parent="Panel/Margin/VBox/Rebinds/move_backRow"]
+size_flags_horizontal = 3
+text = "S"
+
+[node name="move_leftRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
+theme_override_constants/separation = 10
+
+[node name="ActionLabel" type="Label" parent="Panel/Margin/VBox/Rebinds/move_leftRow"]
+custom_minimum_size = Vector2(110, 0)
+text = "Left"
+
+[node name="BindButton" type="Button" parent="Panel/Margin/VBox/Rebinds/move_leftRow"]
+size_flags_horizontal = 3
+text = "A"
+
+[node name="move_rightRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
+theme_override_constants/separation = 10
+
+[node name="ActionLabel" type="Label" parent="Panel/Margin/VBox/Rebinds/move_rightRow"]
+custom_minimum_size = Vector2(110, 0)
+text = "Right"
+
+[node name="BindButton" type="Button" parent="Panel/Margin/VBox/Rebinds/move_rightRow"]
+size_flags_horizontal = 3
+text = "D"
+
+[node name="move_jumpRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
+theme_override_constants/separation = 10
+
+[node name="ActionLabel" type="Label" parent="Panel/Margin/VBox/Rebinds/move_jumpRow"]
+custom_minimum_size = Vector2(110, 0)
+text = "Jump"
+
+[node name="BindButton" type="Button" parent="Panel/Margin/VBox/Rebinds/move_jumpRow"]
+size_flags_horizontal = 3
+text = "Space"
+
+[node name="move_sprintRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
+theme_override_constants/separation = 10
+
+[node name="ActionLabel" type="Label" parent="Panel/Margin/VBox/Rebinds/move_sprintRow"]
+custom_minimum_size = Vector2(110, 0)
+text = "Sprint"
+
+[node name="BindButton" type="Button" parent="Panel/Margin/VBox/Rebinds/move_sprintRow"]
+size_flags_horizontal = 3
+text = "Shift"
+
+[node name="player_regulateRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
+theme_override_constants/separation = 10
+
+[node name="ActionLabel" type="Label" parent="Panel/Margin/VBox/Rebinds/player_regulateRow"]
+custom_minimum_size = Vector2(110, 0)
+text = "Regulate"
+
+[node name="BindButton" type="Button" parent="Panel/Margin/VBox/Rebinds/player_regulateRow"]
+size_flags_horizontal = 3
+text = "R"
+
+[node name="player_restRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
+theme_override_constants/separation = 10
+
+[node name="ActionLabel" type="Label" parent="Panel/Margin/VBox/Rebinds/player_restRow"]
+custom_minimum_size = Vector2(110, 0)
+text = "Rest"
+
+[node name="BindButton" type="Button" parent="Panel/Margin/VBox/Rebinds/player_restRow"]
+size_flags_horizontal = 3
+text = "E"
+
+[node name="player_flashlightRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
+theme_override_constants/separation = 10
+
+[node name="ActionLabel" type="Label" parent="Panel/Margin/VBox/Rebinds/player_flashlightRow"]
+custom_minimum_size = Vector2(110, 0)
+text = "Flashlight"
+
+[node name="BindButton" type="Button" parent="Panel/Margin/VBox/Rebinds/player_flashlightRow"]
+size_flags_horizontal = 3
+text = "F"
 
 [node name="Buttons" type="HBoxContainer" parent="Panel/Margin/VBox"]
 alignment = 1
