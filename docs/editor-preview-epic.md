@@ -159,10 +159,11 @@ Implemented so far:
 - `PlayerHUD` is now authored as a child of `UI` in `main.tscn`, so the main player-facing interface is visible in the editor by default instead of appearing only at runtime
 - remaining direct world geometry like sidewalks, curbs, and the tower shell has also been moved under `World`, reducing clutter at the `Main` root
 - `DevHUD` now stays truly optional and disabled by default, so the production-facing HUD is the first interface a new engineer encounters unless they explicitly turn debug tuning back on
+- `scene-onboarding.md` now explains the new ownership layout and the `DevHUD` re-enable path for new engineers
 
 Recommended next step:
 
-- add a short onboarding note that explains the new scene ownership contract and how to re-enable `DevHUD` when lighting/fog tuning is needed
+- use the onboarding note during the next Godot 4.6 verification pass and tighten any remaining parts of the scene tree that still feel unclear in-editor
 
 ## Godot 4.6 Implementation Notes
 

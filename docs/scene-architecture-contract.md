@@ -4,6 +4,8 @@
 
 This document defines how scenes, nodes, and runtime setup should be organized in `Dissonance Surveillance Boulevard` so new engineers and AI agents can understand the game from the Godot 4.6 editor before reading procedural setup code.
 
+For the quickest practical orientation, read `scene-onboarding.md` first and then return to this contract for the deeper ownership rules.
+
 ## Current Findings
 
 The project already has a strong base scene and some reusable packed scenes:

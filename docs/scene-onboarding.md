@@ -1,0 +1,99 @@
+# Scene Onboarding
+
+## Purpose
+
+This note is the fastest way for a new engineer to understand how `res://scenes/main.tscn` is organized after the editor-preview refactor work.
+
+Open `main.tscn` first. The scene tree should now explain most of the playable structure without requiring a read-through of `main_scene_setup.gd`.
+
+## Top-Level Ownership
+
+`Main` now separates content by responsibility:
+
+- `World`: static level shell, architecture, fog volumes, streetscape geometry, world extension builders, and terminus content
+- `Gameplay`: player, drone, drone route, and other runtime-driven actors
+- `SceneProps`: authored or editor-generated non-critical props and preview content
+- `Zones`: zone volumes that affect the player state model
+- `Collectibles`: collectible instances and the collection manager
+- `UI`: player-facing interface, including `PlayerHUD`
+- `Debug`: optional debugging overlays and tools
+
+## What To Read In The Editor
+
+If you are trying to understand the game quickly, inspect the tree in this order:
+
+1. `Gameplay/Player`
+2. `Gameplay/Drone`
+3. `Gameplay/DroneRoute`
+4. `Zones`
+5. `Collectibles`
+6. `SceneProps`
+7. `World`
+8. `UI/PlayerHUD`
+
+That order gives you the core loop first, then the authored support structure.
+
+## Authored Vs Procedural
+
+The current rule of thumb is:
+
+- authored or `@tool`-generated content should explain the space
+- runtime code should mostly wire behavior and light dynamic variation
+
+Examples of content that should be understandable in the editor:
+
+- navigation-shaping geometry
+- zone placement
+- collectible placement
+- main HUD structure
+- major landmarks and supporting props
+
+Examples of content that can still stay procedural:
+
+- audio synthesis
+- threat and state-model behavior
+- motion variation
+- optional debug helpers
+
+## Runtime Setup Expectations
+
+`res://scripts/main_scene_setup.gd` still matters, but it should now feel like wiring rather than hidden content construction.
+
+It currently:
+
+- resolves key scene references
+- connects the drone to route and player
+- applies a small amount of runtime variation
+- removes the obsolete rear wall so the extended boulevard stays reachable
+- falls back to creating certain roots if they are missing
+
+If you find yourself adding major spatial content only in runtime setup, that is usually a sign the content belongs in the scene tree instead.
+
+## DevHUD
+
+`Debug/DevHUD` is now disabled by default so the production-facing HUD is the first interface visible to new engineers.
+
+If you need the lighting and fog tuning overlay:
+
+1. Select `Debug/DevHUD` in `main.tscn`
+2. In the Inspector, enable `debug_overlay_enabled`
+3. Run the scene
+4. Use `F1` to toggle the overlay
+
+When the overlay is disabled, it does not build its UI or bind its toggle input.
+
+## Current Practical Workflow
+
+For most feature work:
+
+1. Open `main.tscn`
+2. Confirm which ownership root your change belongs to
+3. Prefer authored scene changes or `@tool` builder changes for spatial content
+4. Use runtime scripts for behavior, state, and optional dynamic variation
+5. Re-check node paths if you move anything across top-level ownership roots
+
+## Related Docs
+
+- `scene-architecture-contract.md`
+- `editor-preview-epic.md`
+- `bmad-product-brief.md`
