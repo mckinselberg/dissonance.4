@@ -11,7 +11,7 @@ Open `main.tscn` first. The scene tree should now explain most of the playable s
 `Main` now separates content by responsibility:
 
 - `World`: static level shell, architecture, fog volumes, streetscape geometry, world extension builders, and terminus content
-- `Gameplay`: player, drone, drone route, and other runtime-driven actors
+- `Gameplay`: player, drone, drone route, takedown/progression anchors, and other runtime-driven actors
 - `SceneProps`: authored or editor-generated non-critical props and preview content
 - `Zones`: zone volumes that affect the player state model
 - `Collectibles`: collectible instances and the collection manager
@@ -25,12 +25,13 @@ If you are trying to understand the game quickly, inspect the tree in this order
 1. `Gameplay/Player`
 2. `Gameplay/Drone`
 3. `Gameplay/DroneRoute`
-4. `Zones`
-5. `Collectibles`
-6. `SceneProps`
-7. `World`
-8. `UI/PlayerHUD`
-9. `UI/PauseMenu`
+4. `Gameplay/FaultRelay`
+5. `Zones`
+6. `Collectibles`
+7. `SceneProps`
+8. `World`
+9. `UI/PlayerHUD`
+10. `UI/PauseMenu`
 
 That order gives you the core loop first, then the authored support structure.
 

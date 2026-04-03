@@ -272,6 +272,7 @@ func _setup_input_map() -> void:
 	_ensure_action("move_jump", KEY_SPACE)
 	_ensure_action("player_regulate", KEY_R)
 	_ensure_action("player_rest", KEY_E)
+	_ensure_action("player_interact", KEY_G)
 
 
 func _ensure_action(action_name: StringName, keycode: Key) -> void:

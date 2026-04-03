@@ -24,6 +24,7 @@
 [ext_resource type="Script" uid="uid://bhd6dv2dkl1au" path="res://scripts/collectibles_builder.gd" id="22_collectibles_builder"]
 [ext_resource type="PackedScene" path="res://scenes/player_hud.tscn" id="23_player_hud_scene"]
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="24_pause_menu_scene"]
+[ext_resource type="Script" uid="uid://c2x52omx07jvx" path="res://scripts/drone_fault_zone.gd" id="25_fault_zone_script"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.35
@@ -117,6 +118,25 @@ size = Vector3(16, 10, 5)
 [sub_resource type="BoxMesh" id="BoxMesh_sign_panel"]
 material = ExtResource("12_metal_mat")
 size = Vector3(4.2, 1.2, 0.18)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fault_zone"]
+size = Vector3(8, 6, 10)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fault_interact"]
+size = Vector3(3.8, 2.6, 3.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fault_preview"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.96, 0.72, 0.18, 0.12)
+cull_mode = 2
+emission_enabled = true
+emission = Color(0.98, 0.62, 0.14)
+emission_energy_multiplier = 0.28
+
+[sub_resource type="BoxMesh" id="BoxMesh_fault_preview"]
+size = Vector3(8, 6, 10)
+material = SubResource("StandardMaterial3D_fault_preview")
 
 [sub_resource type="BoxMesh" id="BoxMesh_guardrail"]
 material = ExtResource("12_metal_mat")
@@ -386,6 +406,48 @@ wait_time = 0.9
 [node name="RoutePoint_05" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=702360290]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 9.5, -72)
 script = ExtResource("14_route_point_script")
+
+[node name="FaultRelay" type="Node3D" parent="Gameplay"]
+script = ExtResource("25_fault_zone_script")
+
+[node name="ControlBox" type="MeshInstance3D" parent="Gameplay/FaultRelay"]
+transform = Transform3D(0.64278764, 0, -0.76604444, 0, 1, 0, 0.76604444, 0, 0.64278764, 13.4, 0.9, -67.8)
+mesh = SubResource("BoxMesh_utility_box")
+
+[node name="ControlLight" type="OmniLight3D" parent="Gameplay/FaultRelay"]
+transform = Transform3D(1, 0, 0, 0, 0.9063078, 0.42261827, 0, -0.42261827, 0.9063078, 12.9, 2.15, -67.4)
+light_color = Color(0.72, 0.82, 0.98, 1)
+light_energy = 1.1
+light_volumetric_fog_energy = 0.55
+omni_range = 5.5
+
+[node name="StatusLabel" type="Label3D" parent="Gameplay/FaultRelay"]
+transform = Transform3D(0.9396926, 0, 0.34202015, 0, 1, 0, -0.34202015, 0, 0.9396926, 12.4, 2.8, -66.9)
+text = "Fault relay"
+font_size = 34
+outline_size = 6
+pixel_size = 0.006
+billboard = 1
+modulate = Color(0.95, 0.92, 0.68, 1)
+
+[node name="InteractArea" type="Area3D" parent="Gameplay/FaultRelay"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.0, 1.3, -67.8)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Gameplay/FaultRelay/InteractArea"]
+shape = SubResource("BoxShape3D_fault_interact")
+
+[node name="FaultZone" type="Area3D" parent="Gameplay/FaultRelay"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 9.9, -68.0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Gameplay/FaultRelay/FaultZone"]
+shape = SubResource("BoxShape3D_fault_zone")
+
+[node name="FaultPreview" type="MeshInstance3D" parent="Gameplay/FaultRelay/FaultZone"]
+mesh = SubResource("BoxMesh_fault_preview")
+cast_shadow = 0
+
+[node name="CrashMarker" type="Marker3D" parent="Gameplay/FaultRelay"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 1.1, -69.5)
 
 [node name="StreetLights" type="Node3D" parent="World" unique_id=2085481790]
 

@@ -19,6 +19,7 @@ extends Node3D
 @export var noise_range_factor: float = 0.5
 @export var chase_speed: float = 9.0
 @export var chase_height: float = 5.5
+@export var crash_fall_speed: float = 13.0
 
 @onready var rotor_left: MeshInstance3D = $Rotor_Left
 @onready var rotor_right: MeshInstance3D = $Rotor_Right
@@ -36,6 +37,9 @@ var _player_attention: float = 0.0
 var _player: Node3D
 var _route_gizmo: MeshInstance3D
 var _pursuing: bool = false
+var _disabled: bool = false
+var _crash_target: Vector3
+var _crash_complete: bool = false
 
 var _hum_player: AudioStreamPlayer3D
 var _alert_player: AudioStreamPlayer3D
@@ -56,11 +60,18 @@ func _ready() -> void:
 
 
 func get_alert_level() -> float:
+	if _disabled:
+		return 0.0
 	return _player_attention
 
 
 func _process(delta: float) -> void:
 	_time += delta
+
+	if _disabled:
+		_process_disabled(delta)
+		_update_audio(delta)
+		return
 
 	var hover_offset := sin((_time + _phase) * hover_speed) * hover_amplitude
 	var sway_x := sin((_time + _phase) * drift_speed.x) * drift_amplitude.x
@@ -96,6 +107,23 @@ func _process(delta: float) -> void:
 
 func randomize_motion(seed_value: float) -> void:
 	_phase = seed_value
+
+
+func is_disabled() -> bool:
+	return _disabled
+
+
+func trigger_fault_takedown(crash_position: Vector3) -> bool:
+	if _disabled:
+		return false
+	_disabled = true
+	_crash_target = crash_position
+	_crash_complete = false
+	_player_attention = 0.0
+	_pursuing = false
+	_waiting_at_waypoint = false
+	_wait_timer = 0.0
+	return true
 
 
 func _setup_drone_audio() -> void:
@@ -135,6 +163,13 @@ func _setup_drone_audio() -> void:
 
 
 func _update_audio(_delta: float) -> void:
+	if _disabled:
+		if _hum_player:
+			_hum_player.volume_db = -36.0 if not _crash_complete else -48.0
+		if _shriek_player:
+			_shriek_player.volume_db = -80.0
+		return
+
 	_hum_player.volume_db = lerp(-22.0, -12.0, _player_attention)
 
 	if _hum_playback != null:
@@ -280,6 +315,10 @@ func _update_route_position(delta: float) -> void:
 
 
 func _update_player_attention(delta: float) -> void:
+	if _disabled:
+		_player_attention = move_toward(_player_attention, 0.0, alert_decay * delta)
+		_pursuing = false
+		return
 	if _player == null:
 		_player_attention = move_toward(_player_attention, 0.0, alert_decay * delta)
 		return
@@ -366,3 +405,24 @@ func _build_route_gizmo(route_root: Node3D) -> void:
 	gizmo.mesh = immediate_mesh
 	route_root.add_child(gizmo)
 	_route_gizmo = gizmo
+
+
+func _process_disabled(delta: float) -> void:
+	var target := _crash_target
+	if not _crash_complete:
+		global_position = global_position.move_toward(target, crash_fall_speed * delta)
+		if global_position.distance_to(target) < 0.12:
+			global_position = target
+			_crash_complete = true
+
+	var target_roll := -0.65
+	var target_pitch := 0.42
+	rotation.z = lerp_angle(rotation.z, target_roll, delta * 4.0)
+	rotation.x = lerp_angle(rotation.x, target_pitch, delta * 4.0)
+	rotation.y = lerp_angle(rotation.y, rotation.y + 0.18, delta * 0.6)
+
+	rotor_left.rotate_y(rotor_speed * delta * 0.18)
+	rotor_right.rotate_y(-rotor_speed * delta * 0.18)
+
+	var flicker := 0.45 + 0.35 * sin(_time * 17.0)
+	red_light.light_energy = flicker if not _crash_complete else flicker * 0.45

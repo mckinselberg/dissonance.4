@@ -185,6 +185,17 @@ text = "Rest"
 size_flags_horizontal = 3
 text = "E"
 
+[node name="player_interactRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
+theme_override_constants/separation = 10
+
+[node name="ActionLabel" type="Label" parent="Panel/Margin/VBox/Rebinds/player_interactRow"]
+custom_minimum_size = Vector2(110, 0)
+text = "Interact"
+
+[node name="BindButton" type="Button" parent="Panel/Margin/VBox/Rebinds/player_interactRow"]
+size_flags_horizontal = 3
+text = "G"
+
 [node name="player_flashlightRow" type="HBoxContainer" parent="Panel/Margin/VBox/Rebinds"]
 theme_override_constants/separation = 10
 

@@ -11,6 +11,7 @@ const _REBIND_ACTIONS := [
 	{action = &"move_sprint", label = "Sprint"},
 	{action = &"player_regulate", label = "Regulate"},
 	{action = &"player_rest", label = "Rest"},
+	{action = &"player_interact", label = "Interact"},
 	{action = &"player_flashlight", label = "Flashlight"},
 ]
 
