@@ -160,6 +160,7 @@ Implemented so far:
 - remaining direct world geometry like sidewalks, curbs, and the tower shell has also been moved under `World`, reducing clutter at the `Main` root
 - `DevHUD` now stays truly optional and disabled by default, so the production-facing HUD is the first interface a new engineer encounters unless they explicitly turn debug tuning back on
 - `scene-onboarding.md` now explains the new ownership layout and the `DevHUD` re-enable path for new engineers
+- the authored takedown foundation now includes relay-state feedback in script, while the scene-side crash cue expansion was pared back after a `main.tscn` parse issue; the safer checkpoint keeps the takedown functional and leaves optional cue nodes to be reintroduced more carefully later
 
 Recommended next step:
 

@@ -12,9 +12,9 @@ var _spent: bool = false
 @onready var _crash_marker: Marker3D = $CrashMarker
 @onready var _status_label: Label3D = $StatusLabel
 @onready var _control_light: OmniLight3D = $ControlLight
-@onready var _crash_label: Label3D = $CrashLabel
-@onready var _crash_light: OmniLight3D = $CrashLight
-@onready var _maintenance_note: Label3D = $MaintenanceNote
+@onready var _crash_label: Label3D = get_node_or_null("CrashLabel") as Label3D
+@onready var _crash_light: OmniLight3D = get_node_or_null("CrashLight") as OmniLight3D
+@onready var _maintenance_note: Label3D = get_node_or_null("MaintenanceNote") as Label3D
 
 
 func _ready() -> void:
