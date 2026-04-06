@@ -17,6 +17,9 @@ extends CharacterBody3D
 @export var footstep_duration: float = 0.12
 @export_range(-89.0, 89.0, 0.1) var min_pitch_degrees: float = -80.0
 @export_range(-89.0, 89.0, 0.1) var max_pitch_degrees: float = 70.0
+@export var jammer_duration: float = 6.0
+@export var grab_range_horizontal: float = 2.5
+@export var grab_range_vertical: float = 1.2
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -40,6 +43,17 @@ var _in_rest_zone: bool = false
 var _flashlight: SpotLight3D
 var _drone_threat: float = 0.0
 
+var has_regulator: bool = false
+var jammer_charges: int = 0
+var jammer_active: bool = false
+var _jammer_timer: float = 0.0
+var _jammer_time: float = 0.0
+var can_grab_drone: bool = false
+
+var _jammer_player: AudioStreamPlayer
+var _jammer_playback: AudioStreamGeneratorPlayback
+var _jammer_env: Environment
+
 const _NOISE_DECAY: float = 4.0
 const _NOISE_WALK_STEP: float = 0.25
 const _NOISE_SPRINT_STEP: float = 0.55
@@ -56,7 +70,9 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	state = StateModel.new()
 	_setup_flashlight()
+	_setup_jammer_audio()
 	_ensure_action("player_flashlight", KEY_F)
+	_ensure_action("player_grab_drone", KEY_SPACE)
 	camera.fov = camera_fov
 
 
@@ -74,6 +90,23 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("player_flashlight"):
 		toggle_flashlight()
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("player_jammer"):
+		if not jammer_active and jammer_charges > 0:
+			jammer_charges -= 1
+			jammer_active = true
+			_jammer_timer = jammer_duration
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("player_grab_drone"):
+		if not is_on_floor() and can_grab_drone:
+			var target := _find_grabbable_drone()
+			if target != null and target.has_method("apply_smash"):
+				var impact := target.global_position + Vector3(0.0, -1.0, 0.0)
+				target.call("apply_smash", impact)
 		get_viewport().set_input_as_handled()
 		return
 
@@ -134,6 +167,19 @@ func _physics_process(delta: float) -> void:
 	var is_moving := input_vector.length_squared() > 0.0 and is_on_floor()
 	movement_visibility = 0.55 if (is_moving and speed > walk_speed) else (0.22 if is_moving else 0.0)
 
+	if jammer_active:
+		_jammer_timer -= delta
+		_jammer_time += delta
+		_update_jammer_fx(delta)
+		if _jammer_timer <= 0.0:
+			jammer_active = false
+			_jammer_timer = 0.0
+			_clear_jammer_fx()
+	else:
+		_jammer_time = 0.0
+
+	can_grab_drone = _find_grabbable_drone() != null
+
 
 func _update_head_bob_and_footsteps(delta: float, input_vector: Vector2, speed: float) -> void:
 	var planar_speed := Vector2(velocity.x, velocity.z).length()
@@ -193,6 +239,29 @@ func toggle_flashlight() -> void:
 
 func get_signal_visibility() -> float:
 	return state.signal_visibility
+
+
+func _find_grabbable_drone() -> Node3D:
+	if is_on_floor():
+		return null
+	var drones := get_tree().get_nodes_in_group("drones")
+	for drone_node in drones:
+		var drone := drone_node as Node3D
+		if drone == null:
+			continue
+		if not drone.has_method("is_stunned"):
+			continue
+		var stunned: bool = false
+		if drone.call("is_stunned"):
+			stunned = true
+		if not stunned:
+			continue
+		var diff := drone.global_position - global_position
+		var horiz_dist := Vector2(diff.x, diff.z).length()
+		var vert_diff: float = absf(diff.y)
+		if horiz_dist <= grab_range_horizontal and vert_diff <= grab_range_vertical:
+			return drone
+	return null
 
 
 func _compute_drone_threat() -> float:
@@ -273,6 +342,7 @@ func _setup_input_map() -> void:
 	_ensure_action("player_regulate", KEY_R)
 	_ensure_action("player_rest", KEY_E)
 	_ensure_action("player_interact", KEY_G)
+	_ensure_action("player_jammer", KEY_J)
 
 
 func _ensure_action(action_name: StringName, keycode: Key) -> void:
@@ -286,6 +356,76 @@ func _ensure_action(action_name: StringName, keycode: Key) -> void:
 	var event := InputEventKey.new()
 	event.physical_keycode = keycode
 	InputMap.action_add_event(action_name, event)
+
+
+func _setup_jammer_audio() -> void:
+	var stream := AudioStreamGenerator.new()
+	stream.mix_rate = 44100.0
+	stream.buffer_length = 0.3
+	_jammer_player = AudioStreamPlayer.new()
+	_jammer_player.stream = stream
+	_jammer_player.volume_db = -80.0
+	_jammer_player.bus = "Master"
+	add_child(_jammer_player)
+	_jammer_player.play()
+	_jammer_playback = _jammer_player.get_stream_playback() as AudioStreamGeneratorPlayback
+
+	# Grab the camera's environment for colour modulation
+	if camera != null:
+		var world_env := get_viewport().find_child("WorldEnvironment", true, false)
+		if world_env == null:
+			world_env = get_tree().get_first_node_in_group("world_environment")
+		if world_env != null and world_env.get("environment") != null:
+			_jammer_env = world_env.environment as Environment
+
+
+func _update_jammer_fx(delta: float) -> void:
+	# ─── Audio: EM whine ───────────────────────────────────────────────
+	# Ramp in over first 0.3s, ramp out over last 0.5s
+	var ramp_in: float = clampf(_jammer_time / 0.3, 0.0, 1.0)
+	var ramp_out: float = clampf((_jammer_timer) / 0.5, 0.0, 1.0)
+	var env_vol: float = ramp_in * ramp_out
+	_jammer_player.volume_db = lerpf(-80.0, -18.0, env_vol * env_vol)
+
+	if _jammer_playback != null:
+		var avail := _jammer_playback.get_frames_available()
+		if avail > 0:
+			_fill_jammer_buffer(avail, env_vol)
+
+	# ─── Visual: FOV squeeze + subtle tint ─────────────────────────────
+	var fov_squeeze: float = env_vol * 3.5
+	camera.fov = camera_fov - fov_squeeze
+
+	if _jammer_env != null:
+		# Slight cyan-green shift on ambient light to read as EM field
+		var tint_strength: float = env_vol * 0.12
+		_jammer_env.ambient_light_color = Color(
+			0.12 - tint_strength * 0.04,
+			0.14 + tint_strength * 0.06,
+			0.16 + tint_strength * 0.10
+		)
+
+
+func _clear_jammer_fx() -> void:
+	_jammer_player.volume_db = -80.0
+	camera.fov = camera_fov
+	if _jammer_env != null:
+		_jammer_env.ambient_light_color = Color(0.12, 0.14, 0.16)
+
+
+func _fill_jammer_buffer(frame_count: int, strength: float) -> void:
+	# Pulsed EM whine: 480 Hz carrier + 960 Hz harmonic, 18 Hz pulse envelope
+	# High-frequency crackle layer increases with strength
+	const MIX_RATE: float = 44100.0
+	var dt := 1.0 / MIX_RATE
+	for i in range(frame_count):
+		var pulse_env: float = 0.5 + 0.5 * sin(TAU * 18.0 * _jammer_time)
+		var carrier := sin(TAU * 480.0 * _jammer_time) * 0.55
+		var harmonic := sin(TAU * 960.0 * _jammer_time) * 0.22
+		var crackle := randf_range(-1.0, 1.0) * 0.08 * strength
+		var sample := (carrier + harmonic + crackle) * pulse_env * strength * 0.4
+		_jammer_playback.push_frame(Vector2(clampf(sample, -0.95, 0.95), clampf(sample, -0.95, 0.95)))
+		_jammer_time += dt
 
 
 func _setup_footstep_audio() -> void:

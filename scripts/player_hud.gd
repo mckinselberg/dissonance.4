@@ -216,7 +216,22 @@ func _update_labels(state: StateModel) -> void:
 		_zone_label.text = "-"
 
 	var in_rest: bool = _player.get("_in_rest_zone") == true
-	if in_rest:
+	var jammer_active: bool = _player.get("jammer_active") == true
+	var jammer_charges: int = int(_player.get("jammer_charges"))
+	var has_regulator: bool = _player.get("has_regulator") == true
+	var can_grab: bool = false
+	if _player.get("can_grab_drone"):
+		can_grab = true
+
+	if can_grab:
+		_hint_label.text = "[SPACE] pull down"
+	elif jammer_active:
+		_hint_label.text = "Jammer active"
+	elif jammer_charges > 0:
+		_hint_label.text = "[J] jammer ready"
+	elif has_regulator:
+		_hint_label.text = "Bring component to relay"
+	elif in_rest:
 		_hint_label.text = "[E] rest"
 	elif state.burnout_risk > 0.65:
 		_hint_label.text = "burnout edge"

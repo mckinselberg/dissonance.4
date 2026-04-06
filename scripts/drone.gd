@@ -13,12 +13,15 @@ extends Node3D
 @export var detection_range: float = 20.0
 @export var route_gizmo_height: float = 0.15
 @export var sensitivity: float = 2.5
-@export var alert_decay: float = 0.06
+@export var alert_decay: float = 0.10
 @export var warning_threshold: float = 0.30
 @export var detection_threshold: float = 0.60
 @export var noise_range_factor: float = 0.5
-@export var chase_speed: float = 9.0
+@export var chase_speed: float = 6.5
 @export var chase_height: float = 5.5
+@export var covered_detection_scale: float = 0.3
+@export var stun_duration: float = 5.0
+@export var grab_height: float = 2.5
 @export var crash_fall_speed: float = 13.0
 
 @onready var rotor_left: MeshInstance3D = $Rotor_Left
@@ -44,11 +47,18 @@ var _crash_complete: bool = false
 var _hum_player: AudioStreamPlayer3D
 var _alert_player: AudioStreamPlayer3D
 var _shriek_player: AudioStreamPlayer3D
+var _crash_player: AudioStreamPlayer3D
 var _hum_playback: AudioStreamGeneratorPlayback
 var _shriek_playback: AudioStreamGeneratorPlayback
+var _crash_playback: AudioStreamGeneratorPlayback
 var _alert_fired: bool = false
 var _hum_time: float = 0.0
 var _shriek_time: float = 0.0
+var _crash_audio_time: float = 0.0
+var _crash_audio_active: bool = false
+var _stunned: bool = false
+var _stun_timer: float = 0.0
+var _in_covered_zone: bool = false
 const _HUM_MIX_RATE: float = 44100.0
 
 
@@ -70,6 +80,13 @@ func _process(delta: float) -> void:
 
 	if _disabled:
 		_process_disabled(delta)
+		_update_audio(delta)
+		return
+
+	_in_covered_zone = _check_covered_zone()
+
+	if _stunned:
+		_process_stunned(delta)
 		_update_audio(delta)
 		return
 
@@ -113,6 +130,61 @@ func is_disabled() -> bool:
 	return _disabled
 
 
+func is_stunned() -> bool:
+	return _stunned
+
+
+func apply_smash(impact_position: Vector3) -> void:
+	if not _stunned:
+		return
+	_stunned = false
+	_stun_timer = 0.0
+	_disabled = true
+	_crash_target = impact_position
+	_crash_complete = false
+	_player_attention = 0.0
+	_pursuing = false
+	_crash_audio_active = true
+	_crash_audio_time = 0.0
+
+
+func _check_covered_zone() -> bool:
+	var covered_zones := get_tree().get_nodes_in_group("covered_zones")
+	for zone_node in covered_zones:
+		var zone := zone_node as Node3D
+		if zone == null:
+			continue
+		if zone.has_method("contains_point"):
+			var inside: bool = zone.call("contains_point", global_position)
+			if inside:
+				return true
+	return false
+
+
+func _process_stunned(delta: float) -> void:
+	_stun_timer -= delta
+	if _stun_timer <= 0.0:
+		_stunned = false
+		return
+
+	# Impaired hover: erratic oscillation
+	var stagger_x := sin(_time * 7.3) * 0.35 + sin(_time * 3.1) * 0.18
+	var stagger_z := cos(_time * 5.9) * 0.28
+	var sag_y := grab_height + sin(_time * 2.1) * 0.12
+	global_position.x += stagger_x * delta
+	global_position.y = lerpf(global_position.y, _player.global_position.y + sag_y if _player else global_position.y, delta * 2.5)
+	global_position.z += stagger_z * delta
+
+	rotation.z = lerp_angle(rotation.z, sin(_time * 9.1) * 0.4, delta * 6.0)
+	rotation.x = lerp_angle(rotation.x, cos(_time * 6.7) * 0.3, delta * 5.0)
+
+	var flicker := 0.5 + 0.5 * sin(_time * 22.0 + sin(_time * 4.3) * 3.0)
+	red_light.light_energy = pulse_min_energy * flicker
+
+	rotor_left.rotate_y(rotor_speed * delta * 0.35)
+	rotor_right.rotate_y(-rotor_speed * delta * 0.35)
+
+
 func trigger_fault_takedown(crash_position: Vector3) -> bool:
 	if _disabled:
 		return false
@@ -123,6 +195,8 @@ func trigger_fault_takedown(crash_position: Vector3) -> bool:
 	_pursuing = false
 	_waiting_at_waypoint = false
 	_wait_timer = 0.0
+	_crash_audio_active = true
+	_crash_audio_time = 0.0
 	return true
 
 
@@ -161,13 +235,40 @@ func _setup_drone_audio() -> void:
 	_shriek_player.play()
 	_shriek_playback = _shriek_player.get_stream_playback() as AudioStreamGeneratorPlayback
 
+	var crash_stream := AudioStreamGenerator.new()
+	crash_stream.mix_rate = _HUM_MIX_RATE
+	crash_stream.buffer_length = 0.6
+	_crash_player = AudioStreamPlayer3D.new()
+	_crash_player.stream = crash_stream
+	_crash_player.volume_db = -80.0
+	_crash_player.max_distance = 45.0
+	_crash_player.unit_size = 7.0
+	add_child(_crash_player)
+	_crash_player.play()
+	_crash_playback = _crash_player.get_stream_playback() as AudioStreamGeneratorPlayback
+
 
 func _update_audio(_delta: float) -> void:
+	if _stunned:
+		# Impaired hum: pitch-dropped, stuttering
+		var stutter_gate := 1.0 if sin(_time * 11.0) > -0.3 else 0.0
+		_hum_player.volume_db = lerpf(-16.0, -8.0, stutter_gate)
+		_shriek_player.volume_db = -80.0
+		if _hum_playback != null:
+			var avail := _hum_playback.get_frames_available()
+			if avail > 0:
+				_fill_stun_hum_buffer(avail)
+		return
+
 	if _disabled:
-		if _hum_player:
-			_hum_player.volume_db = -36.0 if not _crash_complete else -48.0
-		if _shriek_player:
-			_shriek_player.volume_db = -80.0
+		_hum_player.volume_db = move_toward(_hum_player.volume_db, -80.0, 1.2)
+		_shriek_player.volume_db = -80.0
+		if _crash_audio_active and _crash_playback != null:
+			var ca_avail := _crash_playback.get_frames_available()
+			if ca_avail > 0:
+				_fill_crash_buffer(ca_avail)
+			var vol_target: float = lerpf(-4.0, -80.0, clampf(_crash_audio_time / 3.0, 0.0, 1.0))
+			_crash_player.volume_db = lerpf(_crash_player.volume_db, vol_target, 0.08)
 		return
 
 	_hum_player.volume_db = lerp(-22.0, -12.0, _player_attention)
@@ -209,6 +310,19 @@ func _fill_hum_buffer(frame_count: int) -> void:
 		_hum_time += dt
 
 
+func _fill_stun_hum_buffer(frame_count: int) -> void:
+	# Pitch-dropped (55 Hz) stuttery hum for impaired drone
+	var dt := 1.0 / _HUM_MIX_RATE
+	for i in range(frame_count):
+		var stutter := 1.0 if sin(TAU * 9.5 * _hum_time) > -0.25 else 0.0
+		var base_tone := sin(TAU * 55.0 * _hum_time) * 0.55
+		var harmonic := sin(TAU * 110.0 * _hum_time) * 0.18
+		var crackle := randf_range(-1.0, 1.0) * 0.12
+		var sample := (base_tone + harmonic + crackle) * stutter * 0.4
+		_hum_playback.push_frame(Vector2(clamp(sample, -0.95, 0.95), clamp(sample, -0.95, 0.95)))
+		_hum_time += dt
+
+
 func _fill_shriek_buffer(frame_count: int) -> void:
 	var dt := 1.0 / _HUM_MIX_RATE
 	var shriek_norm: float = clamp((_player_attention - warning_threshold) / (1.0 - warning_threshold), 0.0, 1.0)
@@ -223,6 +337,21 @@ func _fill_shriek_buffer(frame_count: int) -> void:
 		var sample := (sin(TAU * base_freq * _shriek_time) * 0.7 + sin(TAU * base_freq * 3.0 * _shriek_time) * 0.3) * pulse_env * 0.45
 		_shriek_playback.push_frame(Vector2(clamp(sample, -0.95, 0.95), clamp(sample, -0.95, 0.95)))
 		_shriek_time += dt
+
+
+func _fill_crash_buffer(frame_count: int) -> void:
+	var dt := 1.0 / _HUM_MIX_RATE
+	for i in range(frame_count):
+		var progress: float = clampf(_crash_audio_time / 2.8, 0.0, 1.0)
+		var freq: float = lerpf(110.0, 24.0, progress * progress)
+		var stutter_rate: float = lerpf(3.0, 18.0, progress)
+		var gate := 1.0 if sin(TAU * stutter_rate * _crash_audio_time) > (-0.25 * (1.0 - progress)) else 0.0
+		var sample := sin(TAU * freq * _crash_audio_time) * 0.55
+		sample += sin(TAU * freq * 2.73 * _crash_audio_time) * 0.22 * progress
+		sample += randf_range(-1.0, 1.0) * 0.18 * progress
+		sample *= gate
+		_crash_playback.push_frame(Vector2(clamp(sample, -0.95, 0.95), clamp(sample, -0.95, 0.95)))
+		_crash_audio_time += dt
 
 
 func _synthesize_alert() -> void:
@@ -323,6 +452,15 @@ func _update_player_attention(delta: float) -> void:
 		_player_attention = move_toward(_player_attention, 0.0, alert_decay * delta)
 		return
 
+	if _stunned:
+		_player_attention = move_toward(_player_attention, 0.0, alert_decay * delta)
+		return
+
+	if _player.get("jammer_active") == true:
+		_player_attention = move_toward(_player_attention, 0.0, alert_decay * 5.0 * delta)
+		_pursuing = false
+		return
+
 	var to_player := _player.global_position - global_position
 	var dist := to_player.length()
 	var dist_factor: float = clamp(1.0 - dist / detection_range, 0.0, 1.0)
@@ -356,15 +494,16 @@ func _update_player_attention(delta: float) -> void:
 			if "movement_visibility" in _player:
 				move_vis = float(_player.get("movement_visibility"))
 			# Baseline: existing in LOS is detectable even while still
-			visual_rate = (0.12 + move_vis) * dist_factor
+			var cov_scale := covered_detection_scale if _in_covered_zone else 1.0
+			visual_rate = (0.12 + move_vis) * dist_factor * cov_scale
 
 	# ── Combine and accumulate ───────────────────────────────────────
 	var total_rate := (signal_rate + noise_rate + visual_rate) * sensitivity
 	if total_rate > 0.01:
 		_player_attention = clamp(_player_attention + total_rate * delta, 0.0, 1.0)
 	else:
-		# Decay is halved while pursuing — the drone stays suspicious
-		var decay_mult := 0.4 if _pursuing else 1.0
+		# Decay is slower while pursuing — the drone stays suspicious
+		var decay_mult := 0.55 if _pursuing else 1.0
 		var decay := alert_decay * (0.6 + (1.0 - dist_factor)) * decay_mult
 		_player_attention = clamp(_player_attention - decay * delta, 0.0, 1.0)
 
@@ -373,6 +512,13 @@ func _update_player_attention(delta: float) -> void:
 		_pursuing = true
 	elif _player_attention < warning_threshold * 0.6:
 		_pursuing = false
+
+	# Stun: entering covered space while the drone is actively alarmed
+	if _in_covered_zone and _player_attention >= warning_threshold and not _stunned:
+		_stunned = true
+		_stun_timer = stun_duration
+		_pursuing = false
+		_player_attention = clampf(_player_attention, 0.0, warning_threshold)
 
 
 func _build_route_gizmo(route_root: Node3D) -> void:

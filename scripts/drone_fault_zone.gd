@@ -5,6 +5,10 @@ extends Node3D
 
 var _player_inside: bool = false
 var _spent: bool = false
+var _salvage_area: Area3D
+var _salvage_label: Label3D
+var _player_at_crash: bool = false
+var _salvaged: bool = false
 
 @onready var _interact_area: Area3D = $InteractArea
 @onready var _fault_zone: Area3D = $FaultZone
@@ -22,6 +26,7 @@ func _ready() -> void:
 	_interact_area.body_exited.connect(_on_interact_body_exited)
 	_set_crash_site_active(false)
 	_sync_state_text()
+	_setup_salvage_area()
 
 
 func _process(_delta: float) -> void:
@@ -32,17 +37,29 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not _player_inside or _spent:
-		return
 	if not event.is_action_pressed(interact_action):
 		return
 
+	var handled := false
+
+	if _player_inside and not _spent:
+		_try_fault_relay()
+		handled = true
+
+	if _player_at_crash and not _salvaged:
+		_do_salvage()
+		handled = true
+
+	if handled:
+		get_viewport().set_input_as_handled()
+
+
+func _try_fault_relay() -> void:
 	var drone := _find_target_drone()
 	if drone == null:
 		_status_label.text = "Fault relay: no target"
 		_control_light.light_color = Color(0.98, 0.72, 0.22)
 		return
-
 	if drone.has_method("trigger_fault_takedown") and drone.call("trigger_fault_takedown", _crash_marker.global_position):
 		if single_use:
 			_spent = true
@@ -50,7 +67,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		_control_light.light_color = Color(0.95, 0.22, 0.18)
 		_control_light.light_energy = 2.4
 		_set_crash_site_active(true)
-		get_viewport().set_input_as_handled()
+
+
+func _do_salvage() -> void:
+	_salvaged = true
+	var player := _find_crash_player()
+	if player != null:
+		player.set("has_regulator", true)
+	if _salvage_label:
+		_salvage_label.text = "Signal Phase Regulator taken\nBring to relay"
+		var tween := create_tween()
+		tween.tween_interval(2.5)
+		tween.tween_callback(_salvage_label.hide)
 
 
 func _on_interact_body_entered(body: Node) -> void:
@@ -115,3 +143,52 @@ func _set_crash_site_active(active: bool) -> void:
 		_crash_light.light_energy = 1.6 if active else 0.0
 	if _maintenance_note:
 		_maintenance_note.visible = not active
+	if _salvage_area:
+		_salvage_area.monitoring = active
+	if _salvage_label:
+		_salvage_label.visible = false
+
+
+func _setup_salvage_area() -> void:
+	_salvage_area = Area3D.new()
+	_salvage_area.monitoring = false
+	_salvage_area.body_entered.connect(_on_salvage_body_entered)
+	_salvage_area.body_exited.connect(_on_salvage_body_exited)
+	var col := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 2.4
+	col.shape = sphere
+	_salvage_area.add_child(col)
+	_crash_marker.add_child(_salvage_area)
+
+	_salvage_label = Label3D.new()
+	_salvage_label.text = "Salvage [G]\nSignal Phase Regulator"
+	_salvage_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_salvage_label.modulate = Color(0.95, 0.78, 0.28)
+	_salvage_label.font_size = 32
+	_salvage_label.position = Vector3(0.0, 1.4, 0.0)
+	_salvage_label.visible = false
+	_crash_marker.add_child(_salvage_label)
+
+
+func _on_salvage_body_entered(body: Node) -> void:
+	if body is CharacterBody3D:
+		_player_at_crash = true
+		if _salvage_label and not _salvaged:
+			_salvage_label.visible = true
+
+
+func _on_salvage_body_exited(body: Node) -> void:
+	if body is CharacterBody3D:
+		_player_at_crash = false
+		if _salvage_label and not _salvaged:
+			_salvage_label.visible = false
+
+
+func _find_crash_player() -> Node3D:
+	if _salvage_area == null:
+		return null
+	for body in _salvage_area.get_overlapping_bodies():
+		if body is CharacterBody3D:
+			return body
+	return null

@@ -26,10 +26,6 @@
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="24_pause_menu_scene"]
 [ext_resource type="Script" uid="uid://c2x52omx07jvx" path="res://scripts/drone_fault_zone.gd" id="25_fault_zone_script"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
-radius = 0.35
-height = 1.1
-
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
 material = ExtResource("4_ground_mat")
 size = Vector3(80, 0.2, 180)
@@ -119,25 +115,6 @@ size = Vector3(16, 10, 5)
 material = ExtResource("12_metal_mat")
 size = Vector3(4.2, 1.2, 0.18)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_fault_zone"]
-size = Vector3(8, 6, 10)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_fault_interact"]
-size = Vector3(3.8, 2.6, 3.8)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fault_preview"]
-transparency = 1
-shading_mode = 0
-albedo_color = Color(0.96, 0.72, 0.18, 0.12)
-cull_mode = 2
-emission_enabled = true
-emission = Color(0.98, 0.62, 0.14, 1)
-emission_energy_multiplier = 0.28
-
-[sub_resource type="BoxMesh" id="BoxMesh_fault_preview"]
-size = Vector3(8, 6, 10)
-material = SubResource("StandardMaterial3D_fault_preview")
-
 [sub_resource type="BoxMesh" id="BoxMesh_guardrail"]
 material = ExtResource("12_metal_mat")
 size = Vector3(12, 0.2, 0.18)
@@ -162,7 +139,7 @@ albedo = Color(0.26, 0.27, 0.28, 1)
 height_falloff = 0.1
 edge_fade = 0.4
 
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_jscy8"]
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_og1vs"]
 direction = Vector3(0.9, 0.02, 0.4)
 spread = 32.0
 initial_velocity_min = 0.1
@@ -180,7 +157,7 @@ color = Color(1, 1, 1, 0.55)
 material = ExtResource("6_mist_mat")
 size = Vector2(4.5, 2.2)
 
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_pm3ni"]
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_2wyq8"]
 lifetime_randomness = 0.88
 direction = Vector3(-0.7, 0.03, 0.35)
 spread = 28.0
@@ -199,16 +176,30 @@ color = Color(1, 1, 1, 0.55)
 material = ExtResource("6_mist_mat")
 size = Vector2(6, 3.2)
 
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.35
+height = 1.1
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fault_interact"]
+size = Vector3(3.8, 2.6, 3.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fault_zone"]
+size = Vector3(8, 6, 10)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fault_preview"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.96, 0.72, 0.18, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fault_preview"]
+material = SubResource("StandardMaterial3D_fault_preview")
+size = Vector3(8, 6, 10)
+
 [node name="Main" type="Node3D" unique_id=208666837]
 script = ExtResource("1_main_script")
 
-[node name="World" type="Node3D" parent="."]
-
-[node name="Gameplay" type="Node3D" parent="."]
-
-[node name="UI" type="Node" parent="."]
-
-[node name="Debug" type="Node" parent="."]
+[node name="World" type="Node3D" parent="." unique_id=635727667]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="World" unique_id=1972490545]
 environment = ExtResource("3_env")
@@ -220,24 +211,6 @@ light_energy = 0.3
 light_volumetric_fog_energy = 0.28
 light_angular_distance = 0.9
 shadow_enabled = true
-
-[node name="Player" type="CharacterBody3D" parent="Gameplay" unique_id=359669629]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 12)
-script = ExtResource("10_player_script")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Gameplay/Player" unique_id=2133730168]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-shape = SubResource("CapsuleShape3D_player")
-
-[node name="Head" type="Node3D" parent="Gameplay/Player" unique_id=811695377]
-transform = Transform3D(1, 0, 0, 0, 0.9975641, 0.06975647, 0, -0.06975647, 0.9975641, 0, 1.55, 0)
-
-[node name="Camera3D" type="Camera3D" parent="Gameplay/Player/Head" unique_id=100667854]
-current = true
-fov = 60.0
-far = 300.0
-
-[node name="FootstepPlayer" type="AudioStreamPlayer" parent="Gameplay/Player" unique_id=1133807067]
 
 [node name="Ground" type="MeshInstance3D" parent="World" unique_id=463175142]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, -40)
@@ -378,76 +351,6 @@ transform = Transform3D(0.75, 0, 0, 0, 1.35, 0, 0, 0, 0.75, -18, 0, -136)
 
 [node name="Tower_06" parent="World/Skyline_Group" unique_id=1959379531 instance=ExtResource("8_tower_scene")]
 transform = Transform3D(1.6, 0, 0, 0, 0.7, 0, 0, 0, 1.6, 4, 0, -150)
-
-[node name="Drone" parent="Gameplay" unique_id=193603324 instance=ExtResource("7_drone_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 8.6, -30)
-
-[node name="DroneRoute" type="Node3D" parent="Gameplay" unique_id=985181709]
-
-[node name="RoutePoint_01" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=491856964]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 9, -18)
-script = ExtResource("14_route_point_script")
-wait_time = 0.75
-
-[node name="RoutePoint_02" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=1704002367]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 11.5, -42)
-script = ExtResource("14_route_point_script")
-
-[node name="RoutePoint_03" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=1382476394]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5, 10, -68)
-script = ExtResource("14_route_point_script")
-wait_time = 1.2
-
-[node name="RoutePoint_04" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=958201714]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 12.8, -100)
-script = ExtResource("14_route_point_script")
-wait_time = 0.9
-
-[node name="RoutePoint_05" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=702360290]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 9.5, -72)
-script = ExtResource("14_route_point_script")
-
-[node name="FaultRelay" type="Node3D" parent="Gameplay"]
-script = ExtResource("25_fault_zone_script")
-
-[node name="ControlBox" type="MeshInstance3D" parent="Gameplay/FaultRelay"]
-transform = Transform3D(0.64278764, 0, -0.76604444, 0, 1, 0, 0.76604444, 0, 0.64278764, 13.4, 0.9, -67.8)
-mesh = SubResource("BoxMesh_utility_box")
-
-[node name="ControlLight" type="OmniLight3D" parent="Gameplay/FaultRelay"]
-transform = Transform3D(1, 0, 0, 0, 0.9063078, 0.42261827, 0, -0.42261827, 0.9063078, 12.9, 2.15, -67.4)
-light_color = Color(0.72, 0.82, 0.98, 1)
-light_energy = 1.1
-light_volumetric_fog_energy = 0.55
-omni_range = 5.5
-
-[node name="StatusLabel" type="Label3D" parent="Gameplay/FaultRelay"]
-transform = Transform3D(0.9396926, 0, 0.34202015, 0, 1, 0, -0.34202015, 0, 0.9396926, 12.4, 2.8, -66.9)
-text = "Fault relay"
-font_size = 34
-outline_size = 6
-pixel_size = 0.006
-billboard = 1
-modulate = Color(0.95, 0.92, 0.68, 1)
-
-[node name="InteractArea" type="Area3D" parent="Gameplay/FaultRelay"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.0, 1.3, -67.8)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Gameplay/FaultRelay/InteractArea"]
-shape = SubResource("BoxShape3D_fault_interact")
-
-[node name="FaultZone" type="Area3D" parent="Gameplay/FaultRelay"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 9.9, -68.0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Gameplay/FaultRelay/FaultZone"]
-shape = SubResource("BoxShape3D_fault_zone")
-
-[node name="FaultPreview" type="MeshInstance3D" parent="Gameplay/FaultRelay/FaultZone"]
-mesh = SubResource("BoxMesh_fault_preview")
-cast_shadow = 0
-
-[node name="CrashMarker" type="Marker3D" parent="Gameplay/FaultRelay"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 1.1, -69.5)
 
 [node name="StreetLights" type="Node3D" parent="World" unique_id=2085481790]
 
@@ -646,7 +549,7 @@ amount = 72
 lifetime = 14.0
 preprocess = 10.0
 visibility_aabb = AABB(-28, -2, -46, 56, 8, 92)
-process_material = SubResource("ParticleProcessMaterial_jscy8")
+process_material = SubResource("ParticleProcessMaterial_og1vs")
 draw_pass_1 = SubResource("QuadMesh_mist_a")
 script = ExtResource("2_mist_script")
 
@@ -656,25 +559,9 @@ amount = 28
 lifetime = 18.0
 preprocess = 12.0
 visibility_aabb = AABB(-34, -6, -52, 68, 18, 104)
-process_material = SubResource("ParticleProcessMaterial_pm3ni")
+process_material = SubResource("ParticleProcessMaterial_2wyq8")
 draw_pass_1 = SubResource("QuadMesh_mist_b")
 script = ExtResource("2_mist_script")
-
-[node name="DevHUD" type="CanvasLayer" parent="Debug" unique_id=157010376]
-script = ExtResource("13_dev_hud_script")
-
-[node name="PlayerHUD" parent="UI" instance=ExtResource("23_player_hud_scene")]
-
-[node name="PauseMenu" parent="UI" instance=ExtResource("24_pause_menu_scene")]
-
-[node name="SceneProps" type="Node3D" parent="." unique_id=924822925]
-script = ExtResource("20_scene_props_builder")
-
-[node name="Zones" type="Node3D" parent="." unique_id=562780877]
-script = ExtResource("21_zones_builder")
-
-[node name="Collectibles" type="Node3D" parent="." unique_id=383267416]
-script = ExtResource("22_collectibles_builder")
 
 [node name="BuildingInterior" type="Node3D" parent="World" unique_id=308459113]
 script = ExtResource("16_building_script")
@@ -687,3 +574,113 @@ script = ExtResource("18_world_ext_script")
 
 [node name="BoulevardTerminus" type="Node3D" parent="World" unique_id=386607891]
 script = ExtResource("19_terminus_script")
+
+[node name="Gameplay" type="Node3D" parent="." unique_id=1145303555]
+
+[node name="Player" type="CharacterBody3D" parent="Gameplay" unique_id=359669629]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 12)
+script = ExtResource("10_player_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Gameplay/Player" unique_id=2133730168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="Head" type="Node3D" parent="Gameplay/Player" unique_id=811695377]
+transform = Transform3D(1, 0, 0, 0, 0.9975641, 0.06975647, 0, -0.06975647, 0.9975641, 0, 1.55, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Gameplay/Player/Head" unique_id=100667854]
+current = true
+fov = 60.0
+far = 300.0
+
+[node name="FootstepPlayer" type="AudioStreamPlayer" parent="Gameplay/Player" unique_id=1133807067]
+
+[node name="Drone" parent="Gameplay" unique_id=193603324 instance=ExtResource("7_drone_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 8.6, -30)
+
+[node name="DroneRoute" type="Node3D" parent="Gameplay" unique_id=985181709]
+
+[node name="RoutePoint_01" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=491856964]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 9, -18)
+script = ExtResource("14_route_point_script")
+wait_time = 0.75
+
+[node name="RoutePoint_02" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=1704002367]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 11.5, -42)
+script = ExtResource("14_route_point_script")
+
+[node name="RoutePoint_03" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=1382476394]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5, 10, -68)
+script = ExtResource("14_route_point_script")
+wait_time = 1.2
+
+[node name="RoutePoint_04" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=958201714]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 12.8, -100)
+script = ExtResource("14_route_point_script")
+wait_time = 0.9
+
+[node name="RoutePoint_05" type="Marker3D" parent="Gameplay/DroneRoute" unique_id=702360290]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 9.5, -72)
+script = ExtResource("14_route_point_script")
+
+[node name="FaultRelay" type="Node3D" parent="Gameplay" unique_id=415196255]
+script = ExtResource("25_fault_zone_script")
+
+[node name="ControlBox" type="MeshInstance3D" parent="Gameplay/FaultRelay" unique_id=444557591]
+transform = Transform3D(0.64278764, 0, -0.76604444, 0, 1, 0, 0.76604444, 0, 0.64278764, 13.4, 0.9, -67.8)
+mesh = SubResource("BoxMesh_utility_box")
+
+[node name="ControlLight" type="OmniLight3D" parent="Gameplay/FaultRelay" unique_id=409007687]
+transform = Transform3D(1, 0, 0, 0, 0.9063078, 0.42261827, 0, -0.42261827, 0.9063078, 12.9, 2.15, -67.4)
+light_color = Color(0.72, 0.82, 0.98, 1)
+light_energy = 1.1
+light_volumetric_fog_energy = 0.55
+omni_range = 5.5
+
+[node name="StatusLabel" type="Label3D" parent="Gameplay/FaultRelay" unique_id=780205309]
+transform = Transform3D(0.9396926, 0, 0.34202015, 0, 1, 0, -0.34202015, 0, 0.9396926, 12.4, 2.8, -66.9)
+pixel_size = 0.006
+billboard = 1
+modulate = Color(0.95, 0.92, 0.68, 1)
+text = "Fault relay"
+font_size = 34
+outline_size = 6
+
+[node name="InteractArea" type="Area3D" parent="Gameplay/FaultRelay" unique_id=1306297902]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 1.3, -67.8)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Gameplay/FaultRelay/InteractArea" unique_id=902760526]
+shape = SubResource("BoxShape3D_fault_interact")
+
+[node name="FaultZone" type="Area3D" parent="Gameplay/FaultRelay" unique_id=347394171]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 9.9, -68)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Gameplay/FaultRelay/FaultZone" unique_id=586005782]
+shape = SubResource("BoxShape3D_fault_zone")
+
+[node name="FaultPreview" type="MeshInstance3D" parent="Gameplay/FaultRelay/FaultZone" unique_id=1219678908]
+cast_shadow = 0
+mesh = SubResource("BoxMesh_fault_preview")
+
+[node name="CrashMarker" type="Marker3D" parent="Gameplay/FaultRelay" unique_id=1966218909]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 1.1, -69.5)
+
+[node name="UI" type="Node" parent="." unique_id=604049980]
+
+[node name="PlayerHUD" parent="UI" unique_id=42466662 instance=ExtResource("23_player_hud_scene")]
+
+[node name="PauseMenu" parent="UI" unique_id=1231730869 instance=ExtResource("24_pause_menu_scene")]
+
+[node name="Debug" type="Node" parent="." unique_id=2071601207]
+
+[node name="DevHUD" type="CanvasLayer" parent="Debug" unique_id=157010376]
+script = ExtResource("13_dev_hud_script")
+
+[node name="SceneProps" type="Node3D" parent="." unique_id=924822925]
+script = ExtResource("20_scene_props_builder")
+
+[node name="Zones" type="Node3D" parent="." unique_id=562780877]
+script = ExtResource("21_zones_builder")
+
+[node name="Collectibles" type="Node3D" parent="." unique_id=383267416]
+script = ExtResource("22_collectibles_builder")
