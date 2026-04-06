@@ -98,6 +98,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			jammer_charges -= 1
 			jammer_active = true
 			_jammer_timer = jammer_duration
+			SaveLoad.jammer_charges = jammer_charges
+			SaveLoad.save_game()
 		get_viewport().set_input_as_handled()
 		return
 
@@ -175,6 +177,8 @@ func _physics_process(delta: float) -> void:
 			jammer_active = false
 			_jammer_timer = 0.0
 			_clear_jammer_fx()
+			SaveLoad.jammer_charges = jammer_charges
+			SaveLoad.save_game()
 	else:
 		_jammer_time = 0.0
 

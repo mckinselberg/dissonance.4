@@ -74,6 +74,9 @@ func _do_salvage() -> void:
 	var player := _find_crash_player()
 	if player != null:
 		player.set("has_regulator", true)
+		SaveLoad.has_regulator = true
+		SaveLoad.drone_disabled = true
+		SaveLoad.save_game()
 	if _salvage_label:
 		_salvage_label.text = "Signal Phase Regulator taken\nBring to relay"
 		var tween := create_tween()

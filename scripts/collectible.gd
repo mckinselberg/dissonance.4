@@ -4,6 +4,7 @@ extends Area3D
 
 var symbol: String = "\u266A"
 var collection_manager: CollectionManager = null
+var collectible_index: int = -1
 
 var _label: Label3D
 var _editor_label: Label3D
@@ -41,6 +42,11 @@ func _ready() -> void:
 
 	body_entered.connect(_on_body_entered)
 
+	# Already collected in a previous session — remove immediately
+	if collectible_index >= 0 and SaveLoad.is_collected(collectible_index):
+		queue_free()
+		return
+
 
 func _process(delta: float) -> void:
 	if _collected:
@@ -54,6 +60,8 @@ func _on_body_entered(body: Node) -> void:
 	if _collected or not (body is CharacterBody3D):
 		return
 	_collected = true
+	if collectible_index >= 0:
+		SaveLoad.mark_collected(collectible_index)
 	_play_collect_sound()
 	if collection_manager != null:
 		collection_manager.on_collect()

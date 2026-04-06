@@ -22,10 +22,16 @@ func setup(root: Node3D) -> CollectionManager:
 	root.add_child(manager)
 	manager.register_total(_POSITIONS.size())
 
+	# Restore already-collected count so HUD starts accurate
+	for id in SaveLoad.collected_ids:
+		if id >= 0 and id < _POSITIONS.size():
+			manager.on_collect()
+
 	for i in range(_POSITIONS.size()):
 		var c := MusicalCollectible.new()
 		c.symbol = _SYMBOLS[i]
 		c.collection_manager = manager
+		c.collectible_index = i
 		c.position = _POSITIONS[i]
 		root.add_child(c)
 

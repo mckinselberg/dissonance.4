@@ -50,6 +50,23 @@ func _ready() -> void:
 	if pause_menu != null and pause_menu.has_method("setup"):
 		pause_menu.call("setup", player)
 
+	_restore_save_state()
+
+
+func _restore_save_state() -> void:
+	# Restore player progression from SaveLoad autoload
+	if player != null:
+		if SaveLoad.has_regulator:
+			player.set("has_regulator", true)
+		if SaveLoad.jammer_charges > 0:
+			player.set("jammer_charges", SaveLoad.jammer_charges)
+
+	# Restore drone fault state
+	if SaveLoad.drone_disabled and drone != null and drone.has_method("trigger_fault_takedown"):
+		# Drone was already crashed — teleport it below ground and disable
+		drone.global_position = Vector3(0.0, -20.0, 0.0)
+		drone.call("trigger_fault_takedown", drone.global_position)
+
 
 func _resolve_scene_nodes() -> void:
 	drone = _require_authored_node("Gameplay/Drone", "Drone", "Drone") as Node3D

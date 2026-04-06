@@ -28,6 +28,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	player.set("has_regulator", false)
 	player.set("jammer_charges", int(player.get("jammer_charges")) + 1)
 	_spent = true
+	SaveLoad.has_regulator = false
+	SaveLoad.jammer_charges = int(player.get("jammer_charges"))
+	SaveLoad.save_game()
 	_status_label.text = "Jammer loaded\n[J] to activate"
 	_control_light.light_color = Color(0.25, 0.92, 0.62)
 	_control_light.light_energy = 3.2
