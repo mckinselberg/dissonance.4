@@ -15,6 +15,10 @@ var collected_ids: Array[int] = []
 var has_regulator: bool = false
 var jammer_charges: int = 0
 var drone_disabled: bool = false
+var mouse_sensitivity: float = 0.0025
+var master_volume_linear: float = 1.0
+var fullscreen: bool = false
+var keybinds: Dictionary = {}
 
 
 func _ready() -> void:
@@ -28,6 +32,10 @@ func save_game() -> void:
 		"has_regulator": has_regulator,
 		"jammer_charges": jammer_charges,
 		"drone_disabled": drone_disabled,
+		"mouse_sensitivity": mouse_sensitivity,
+		"master_volume_linear": master_volume_linear,
+		"fullscreen": fullscreen,
+		"keybinds": keybinds,
 	}
 	var file := FileAccess.open(_SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -61,6 +69,14 @@ func load_game() -> void:
 	has_regulator  = bool(d.get("has_regulator",  false))
 	jammer_charges = int(d.get("jammer_charges",  0))
 	drone_disabled = bool(d.get("drone_disabled",  false))
+	mouse_sensitivity = float(d.get("mouse_sensitivity", 0.0025))
+	master_volume_linear = float(d.get("master_volume_linear", 1.0))
+	fullscreen = bool(d.get("fullscreen", false))
+	keybinds.clear()
+	if d.has("keybinds") and d["keybinds"] is Dictionary:
+		var kb: Dictionary = d["keybinds"] as Dictionary
+		for k in kb.keys():
+			keybinds[StringName(k)] = int(kb[k])
 
 
 func delete_save() -> void:
@@ -79,8 +95,25 @@ func is_collected(index: int) -> bool:
 	return collected_ids.has(index)
 
 
+func set_keybind(action: StringName, keycode: Key) -> void:
+	keybinds[action] = int(keycode)
+	save_game()
+
+
+func reset_runtime_settings() -> void:
+	mouse_sensitivity = 0.0025
+	master_volume_linear = 1.0
+	fullscreen = false
+	keybinds.clear()
+	save_game()
+
+
 func _reset() -> void:
 	collected_ids.clear()
 	has_regulator  = false
 	jammer_charges = 0
 	drone_disabled = false
+	mouse_sensitivity = 0.0025
+	master_volume_linear = 1.0
+	fullscreen = false
+	keybinds.clear()

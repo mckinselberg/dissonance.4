@@ -20,6 +20,7 @@ func _ready() -> void:
 		drone.call("set_player", player)
 	if drone != null and drone.has_method("set_route_gizmo_visible"):
 		drone.call("set_route_gizmo_visible", true)
+	_apply_saved_runtime_settings()
 
 	_apply_scene_runtime_adjustments()
 
@@ -51,6 +52,35 @@ func _ready() -> void:
 		pause_menu.call("setup", player)
 
 	_restore_save_state()
+
+
+func _apply_saved_runtime_settings() -> void:
+	if player != null:
+		player.set("mouse_sensitivity", SaveLoad.mouse_sensitivity)
+
+	var master_bus := AudioServer.get_bus_index("Master")
+	if master_bus >= 0:
+		AudioServer.set_bus_volume_db(master_bus, linear_to_db(max(SaveLoad.master_volume_linear, 0.001)))
+
+	DisplayServer.window_set_mode(
+		DisplayServer.WINDOW_MODE_FULLSCREEN if SaveLoad.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
+	)
+
+	for action_name in SaveLoad.keybinds.keys():
+		var action: StringName = action_name
+		var keycode: int = int(SaveLoad.keybinds[action_name])
+		if keycode == KEY_NONE:
+			continue
+		_apply_keybind(action, keycode)
+
+
+func _apply_keybind(action: StringName, keycode: int) -> void:
+	if not InputMap.has_action(action):
+		return
+	InputMap.action_erase_events(action)
+	var ev := InputEventKey.new()
+	ev.physical_keycode = keycode
+	InputMap.action_add_event(action, ev)
 
 
 func _restore_save_state() -> void:

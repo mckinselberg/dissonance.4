@@ -222,3 +222,7 @@ text = "Restart"
 [node name="NewGameButton" type="Button" parent="Panel/Margin/VBox/Buttons"]
 custom_minimum_size = Vector2(120, 0)
 text = "New Game"
+
+[node name="ResetSettingsButton" type="Button" parent="Panel/Margin/VBox/Buttons"]
+custom_minimum_size = Vector2(120, 0)
+text = "Reset Settings"
