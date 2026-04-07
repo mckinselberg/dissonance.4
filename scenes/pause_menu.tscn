@@ -218,3 +218,7 @@ text = "Resume"
 [node name="RestartButton" type="Button" parent="Panel/Margin/VBox/Buttons"]
 custom_minimum_size = Vector2(120, 0)
 text = "Restart"
+
+[node name="NewGameButton" type="Button" parent="Panel/Margin/VBox/Buttons"]
+custom_minimum_size = Vector2(120, 0)
+text = "New Game"

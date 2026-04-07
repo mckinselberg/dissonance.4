@@ -24,6 +24,7 @@ var _rebind_buttons: Dictionary = {}
 @onready var _panel: PanelContainer = $Panel
 @onready var _resume_button: Button = $Panel/Margin/VBox/Buttons/ResumeButton
 @onready var _restart_button: Button = $Panel/Margin/VBox/Buttons/RestartButton
+@onready var _new_game_button: Button = $Panel/Margin/VBox/Buttons/NewGameButton
 @onready var _mouse_slider: HSlider = $Panel/Margin/VBox/Settings/MouseRow/MouseSlider
 @onready var _mouse_value: Label = $Panel/Margin/VBox/Settings/MouseRow/MouseValue
 @onready var _volume_slider: HSlider = $Panel/Margin/VBox/Settings/VolumeRow/VolumeSlider
@@ -39,6 +40,7 @@ func _ready() -> void:
 	_apply_styles()
 	_resume_button.pressed.connect(_close_menu)
 	_restart_button.pressed.connect(_restart_scene)
+	_new_game_button.pressed.connect(_new_game)
 	_mouse_slider.value_changed.connect(_on_mouse_sensitivity_changed)
 	_volume_slider.value_changed.connect(_on_master_volume_changed)
 	_fullscreen_toggle.toggled.connect(_on_fullscreen_toggled)
@@ -96,9 +98,17 @@ func _restart_scene() -> void:
 	get_tree().reload_current_scene()
 
 
+func _new_game() -> void:
+	SaveLoad.delete_save()
+	get_tree().paused = false
+	_is_open = false
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	get_tree().reload_current_scene()
+
+
 func _sync_from_runtime() -> void:
 	if _player != null and is_instance_valid(_player):
-		var mouse_sensitivity := float(_player.get("mouse_sensitivity"))
+		var mouse_sensitivity: float = float(_player.get("mouse_sensitivity"))
 		_mouse_slider.value = mouse_sensitivity
 		_mouse_value.text = "%.4f" % mouse_sensitivity
 	else:

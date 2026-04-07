@@ -47,13 +47,13 @@ func load_game() -> void:
 	var text := file.get_as_text()
 	file.close()
 
-	var parsed := JSON.parse_string(text)
+	var parsed: Variant = JSON.parse_string(text)
 	if not (parsed is Dictionary):
 		push_warning("SaveLoad: corrupt save file, resetting.")
 		_reset()
 		return
 
-	var d := parsed as Dictionary
+	var d: Dictionary = parsed as Dictionary
 	collected_ids.clear()
 	if d.has("collected_ids") and d["collected_ids"] is Array:
 		for id in d["collected_ids"]:
