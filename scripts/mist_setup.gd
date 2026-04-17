@@ -9,28 +9,16 @@ func _ready() -> void:
 
 
 func _do_spawn() -> void:
-	# Pull back the existing flat mist sheets so they read as background haze.
+	# Mist disabled — particles render as opaque white sheets in Forward+.
+	# Atmospheric depth is handled entirely by depth/volumetric fog in night_env.tres.
 	var root := get_parent()
 	if root != null and root.name == "World":
 		root = root.get_parent()
 	for node_name in ["MistParticles_A", "MistParticles_B"]:
 		var existing := _find_particle(root, node_name)
-		if existing == null:
-			continue
-		var pm := existing.process_material as ParticleProcessMaterial
-		if pm == null:
-			continue
-		pm = pm.duplicate() as ParticleProcessMaterial
-		pm.color = Color(1.0, 1.0, 1.0, 0.55)
-		existing.process_material = pm
-
-	# Ground tendril layer — low wisps crawling at foot level
-	for z: float in [-20.0, -60.0, -100.0]:
-		_spawn_ground_tendril(z)
-
-	# Mid haze layer — barely visible volume above head height
-	for z: float in [-35.0, -90.0]:
-		_spawn_mid_haze(z)
+		if existing != null:
+			existing.emitting = false
+			existing.visible = false
 
 
 func _spawn_ground_tendril(z: float) -> void:

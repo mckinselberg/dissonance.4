@@ -675,6 +675,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 1.1, -69.5)
 
 [node name="DevHUD" type="CanvasLayer" parent="Debug" unique_id=157010376]
 script = ExtResource("13_dev_hud_script")
+debug_overlay_enabled = true
 
 [node name="SceneProps" type="Node3D" parent="." unique_id=924822925]
 script = ExtResource("20_scene_props_builder")

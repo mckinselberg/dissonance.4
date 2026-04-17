@@ -144,30 +144,36 @@ func _play_tuning_audio() -> void:
 ## Why This Pattern Works
 
 ### 1. Self-contained state machine
+
 `_player_inside` and `_spent` are the only state variables needed.
 `_sync_label()` is the single place that translates state → label + light colour.
 There is no separate update loop — state changes only on events.
 
 ### 2. Input guard chain
+
 `_unhandled_input` checks conditions in order, returns early at each failure,
 and calls `set_input_as_handled()` only on success. This prevents input bleed to
 other systems and makes the precondition logic read top-to-bottom.
 
 ### 3. Player queried by type, not node path
+
 `_find_player()` queries `get_overlapping_bodies()` for any `CharacterBody3D`.
 No hardcoded paths. Works regardless of where in the scene tree the player lives.
 
 ### 4. Player inventory accessed via `.get()` / `.set()`
+
 The script never `@onready`-refs the player. It only uses the weakly-coupled
 `node.get("property")` / `node.set("property")` API. This means the script can
 run on any scene that has a compatible player without changes.
 
 ### 5. One-shot audio via `add_child` + Tween self-cleanup
+
 No audio nodes are authored in the scene. The procedural audio player is created,
 filled with a synthesised waveform, and scheduled for `queue_free()` via a `Tween`.
 The object stays clean and the audio lifecycle is entirely local to the function.
 
 ### 6. Persistence at the point of change
+
 `SaveLoad.save_game()` is called exactly once, at the moment state changes,
 with all fields written immediately before the call. No deferred saves, no risk
 of a stale write.
@@ -176,9 +182,9 @@ of a stale write.
 
 ## Adapting This Pattern
 
-| New object type | What to change |
-|---|---|
-| Door / barrier | Replace `_spent` guard with a toggle; replace `_sync_label` with mesh/light swap |
-| Collectible dispenser | Swap `has_regulator` check for a currency/key item; emit a signal on collect |
-| Terminal / log | Replace audio synth with text panel show/hide; no `_spent` needed (re-readable) |
-| Multi-step interaction | Add a `_step: int` counter; `_sync_label` maps step → prompt text |
+| New object type        | What to change                                                                   |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| Door / barrier         | Replace `_spent` guard with a toggle; replace `_sync_label` with mesh/light swap |
+| Collectible dispenser  | Swap `has_regulator` check for a currency/key item; emit a signal on collect     |
+| Terminal / log         | Replace audio synth with text panel show/hide; no `_spent` needed (re-readable)  |
+| Multi-step interaction | Add a `_step: int` counter; `_sync_label` maps step → prompt text                |
